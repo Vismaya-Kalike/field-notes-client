@@ -218,12 +218,6 @@ export default function LearningCentreDetail({ centreId, onBack }: LearningCentr
                       <span className="text-gray-600">Messages:</span>
                       <span className="font-medium text-gray-900">{report.messages_count}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">AI Analysis:</span>
-                      <span className={`font-medium ${report.has_llm_analysis ? 'text-green-700' : 'text-gray-400'}`}>
-                        {report.has_llm_analysis ? 'Available' : 'Not Available'}
-                      </span>
-                    </div>
                   </div>
 
                   <div className="mt-3 text-xs text-gray-500">
