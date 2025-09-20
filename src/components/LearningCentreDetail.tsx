@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { LearningCentre, GeneratedReport } from '../types/database';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 
-interface LearningCentreDetailProps {
-  centreId: string;
-  onBack: () => void;
-}
-
-export default function LearningCentreDetail({ centreId, onBack }: LearningCentreDetailProps) {
+export default function LearningCentreDetail() {
+  const { centreId, state: stateParam, district: districtParam } = useParams<{ 
+    centreId: string; 
+    state: string; 
+    district: string; 
+  }>();
+  const navigate = useNavigate();
   const [centre, setCentre] = useState<LearningCentre | null>(null);
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,7 @@ export default function LearningCentreDetail({ centreId, onBack }: LearningCentr
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center mb-8">
         <Button
-          onClick={onBack}
+          onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}`)}
           variant="outline"
           className="mr-4"
         >
@@ -202,7 +204,8 @@ export default function LearningCentreDetail({ centreId, onBack }: LearningCentr
               {reports.map((report) => (
                 <div
                   key={report.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}/report/${report.id}`)}
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md cursor-pointer transition-all duration-200 group"
                 >
                   <h3 className="font-semibold text-gray-900 mb-2">{report.month_year_display}</h3>
                   <p className="text-gray-600 text-sm mb-3">
@@ -220,8 +223,13 @@ export default function LearningCentreDetail({ centreId, onBack }: LearningCentr
                     </div>
                   </div>
 
-                  <div className="mt-3 text-xs text-gray-500">
-                    Created: {new Date(report.created_at).toLocaleDateString()}
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="text-xs text-gray-500">
+                      Created: {new Date(report.created_at).toLocaleDateString()}
+                    </span>
+                    <span className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                      →
+                    </span>
                   </div>
                 </div>
               ))}

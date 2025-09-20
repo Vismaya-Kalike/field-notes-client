@@ -1,48 +1,10 @@
-import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import DistrictsList from './components/DistrictsList'
 import LearningCentresList from './components/LearningCentresList'
 import LearningCentreDetail from './components/LearningCentreDetail'
-
-type View = 'districts' | 'centres' | 'detail'
-
-interface ViewState {
-  view: View
-  selectedDistrict?: string
-  selectedState?: string
-  selectedCentreId?: string
-}
+import ReportDetail from './components/ReportDetail'
 
 function App() {
-  const [viewState, setViewState] = useState<ViewState>({ view: 'districts' })
-
-  const handleDistrictSelect = (district: string, state: string) => {
-    setViewState({
-      view: 'centres',
-      selectedDistrict: district,
-      selectedState: state
-    })
-  }
-
-  const handleCentreSelect = (centreId: string) => {
-    setViewState({
-      ...viewState,
-      view: 'detail',
-      selectedCentreId: centreId
-    })
-  }
-
-  const handleBackToDistricts = () => {
-    setViewState({ view: 'districts' })
-  }
-
-  const handleBackToCentres = () => {
-    setViewState({
-      view: 'centres',
-      selectedDistrict: viewState.selectedDistrict,
-      selectedState: viewState.selectedState
-    })
-  }
-
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-gray-200 bg-white">
@@ -58,25 +20,13 @@ function App() {
           </div>
         </div>
       </header>
-      {viewState.view === 'districts' && (
-        <DistrictsList onDistrictSelect={handleDistrictSelect} />
-      )}
-
-      {viewState.view === 'centres' && viewState.selectedDistrict && viewState.selectedState && (
-        <LearningCentresList
-          district={viewState.selectedDistrict}
-          state={viewState.selectedState}
-          onCentreSelect={handleCentreSelect}
-          onBack={handleBackToDistricts}
-        />
-      )}
-
-      {viewState.view === 'detail' && viewState.selectedCentreId && (
-        <LearningCentreDetail
-          centreId={viewState.selectedCentreId}
-          onBack={handleBackToCentres}
-        />
-      )}
+      <Routes>
+        <Route path="/" element={<Navigate to="/districts" replace />} />
+        <Route path="/districts" element={<DistrictsList />} />
+        <Route path="/districts/:state/:district" element={<LearningCentresList />} />
+        <Route path="/districts/:state/:district/centre/:centreId" element={<LearningCentreDetail />} />
+        <Route path="/districts/:state/:district/centre/:centreId/report/:reportId" element={<ReportDetail />} />
+      </Routes>
     </div>
   )
 }

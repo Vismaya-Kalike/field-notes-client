@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { District } from '../types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 
-interface DistrictsListProps {
-  onDistrictSelect: (district: string, state: string) => void;
-}
-
-export default function DistrictsList({ onDistrictSelect }: DistrictsListProps) {
+export default function DistrictsList() {
+  const navigate = useNavigate();
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +82,7 @@ export default function DistrictsList({ onDistrictSelect }: DistrictsListProps) 
             {stateDistricts.map((district) => (
               <Card
                 key={`${district.state}-${district.district}`}
-                onClick={() => onDistrictSelect(district.district, district.state)}
+                onClick={() => navigate(`/districts/${encodeURIComponent(district.state)}/${encodeURIComponent(district.district)}`)}
                 className="cursor-pointer transition-colors hover:bg-gray-50 border-gray-200"
               >
                 <CardHeader>

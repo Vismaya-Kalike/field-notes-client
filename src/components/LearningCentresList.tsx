@@ -1,23 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { LearningCentre } from '../types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 
-interface LearningCentresListProps {
-  district: string;
-  state: string;
-  onCentreSelect: (centreId: string) => void;
-  onBack: () => void;
-}
-
-export default function LearningCentresList({
-  district,
-  state,
-  onCentreSelect,
-  onBack
-}: LearningCentresListProps) {
+export default function LearningCentresList() {
+  const { state: stateParam, district: districtParam } = useParams<{ state: string; district: string }>();
+  const navigate = useNavigate();
+  
+  const state = stateParam ? decodeURIComponent(stateParam) : '';
+  const district = districtParam ? decodeURIComponent(districtParam) : '';
   const [centres, setCentres] = useState<LearningCentre[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +72,7 @@ export default function LearningCentresList({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center mb-8">
         <Button
-          onClick={onBack}
+          onClick={() => navigate('/districts')}
           variant="outline"
           className="mr-4"
         >
@@ -96,7 +90,7 @@ export default function LearningCentresList({
           {centres.map((centre) => (
             <Card
               key={centre.id}
-              onClick={() => onCentreSelect(centre.id)}
+              onClick={() => navigate(`/districts/${encodeURIComponent(state)}/${encodeURIComponent(district)}/centre/${centre.id}`)}
               className="cursor-pointer transition-colors hover:bg-gray-50 border-gray-200"
             >
               <CardHeader>
