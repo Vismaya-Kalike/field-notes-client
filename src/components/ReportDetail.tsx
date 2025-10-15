@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { GeneratedReport } from '../types/database';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 
@@ -25,6 +25,8 @@ interface ReportLLMAnalysis {
   created_at: string;
 }
 
+type SectionKey = 'summary' | 'images' | 'analysis';
+
 export default function ReportDetail() {
   const { reportId, centreId, state: stateParam, district: districtParam } = useParams<{ 
     reportId: string;
@@ -39,6 +41,18 @@ export default function ReportDetail() {
   const [llmAnalysis, setLlmAnalysis] = useState<ReportLLMAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
+    summary: true,
+    images: true,
+    analysis: true,
+  });
+
+  const toggleSection = (section: SectionKey) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   const fetchReportDetails = useCallback(async () => {
     try {
@@ -106,31 +120,23 @@ export default function ReportDetail() {
         <Skeleton className="h-10 w-48 mr-4" />
         <Skeleton className="h-8 w-64" />
       </div>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-48 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-5">
+        <div className="rounded-lg bg-white p-5 shadow-sm">
+          <Skeleton className="h-6 w-48 mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+        <div className="rounded-lg bg-white p-5 shadow-sm">
+          <Skeleton className="h-6 w-32 mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full" />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -152,127 +158,144 @@ export default function ReportDetail() {
       <div className="mb-8">
         <Button
           onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}`)}
-          variant="ghost"
-          className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          variant="link"
+          className="mb-2 gap-1 text-gray-500 hover:text-gray-900"
         >
           ← Back to Learning Centre
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">{report.month_year_display} Report</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">{report.month_year_display} Report</h1>
       </div>
 
       {/* Report Summary */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-xl text-gray-900">Report Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">{report.images_count}</div>
-              <div className="text-sm text-blue-800">Images</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-3xl font-bold text-green-600">{report.messages_count}</div>
-              <div className="text-sm text-green-800">Messages</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-3xl font-bold text-purple-600">
-                {report.has_llm_analysis ? '✓' : '✗'}
+      <section className="mb-6 rounded-lg bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => toggleSection('summary')}
+          aria-expanded={openSections.summary}
+          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+        >
+          <span className="text-base font-medium text-gray-900">Report Summary</span>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform ${openSections.summary ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        {openSections.summary && (
+          <div className="space-y-6 border-t border-gray-100 p-5">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
+                <div className="text-lg text-gray-900">{report.images_count}</div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Images</div>
               </div>
-              <div className="text-sm text-purple-800">LLM Analysis</div>
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
+                <div className="text-lg text-gray-900">{report.messages_count}</div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Field Notes</div>
+              </div>
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
+                <div className="text-lg text-gray-900">
+                  {report.has_llm_analysis ? 'Yes' : 'No'}
+                </div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">LLM Analysis</div>
+              </div>
             </div>
+            <dl className="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-2">
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-gray-500">Facilitator</dt>
+                <dd className="font-medium text-gray-900">{report.facilitator_name}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-gray-500">Learning Centre</dt>
+                <dd className="font-medium text-gray-900">{report.learning_centre_name}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-gray-500">Created</dt>
+                <dd className="font-medium text-gray-900">{new Date(report.created_at).toLocaleDateString()}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-gray-500">Period</dt>
+                <dd className="font-medium text-gray-900">{report.month_year_display}</dd>
+              </div>
+            </dl>
           </div>
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-900">Facilitator:</span> {report.facilitator_name}
-              </div>
-              <div>
-                <span className="font-medium text-gray-900">Learning Centre:</span> {report.learning_centre_name}
-              </div>
-              <div>
-                <span className="font-medium text-gray-900">Created:</span> {new Date(report.created_at).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="font-medium text-gray-900">Period:</span> {report.month_year_display}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        )}
+      </section>
 
       {/* Images Section */}
       {images.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-900">Images ({images.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {images.map((image) => (
-                <div key={image.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <img
-                    src={image.photo_url}
-                    alt="Report image"
-                    className="w-full h-48 object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
+        <section className="mb-6 rounded-lg bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => toggleSection('images')}
+            aria-expanded={openSections.images}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+          >
+            <div>
+              <span className="block text-base font-medium text-gray-900">Images</span>
+              <span className="block text-xs text-gray-500">
+                {images.length} {images.length === 1 ? 'image' : 'images'}
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <ChevronDown
+              className={`h-4 w-4 text-gray-500 transition-transform ${openSections.images ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {openSections.images && (
+            <div className="border-t border-gray-100 p-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {images.map((image) => (
+                  <div key={image.id} className="overflow-hidden rounded-lg bg-gray-100">
+                    <img
+                      src={image.photo_url}
+                      alt="Report image"
+                      className="h-48 w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
       )}
 
-      {/* Messages Section - Hidden for now */}
-      {/* {messages.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-900">Messages ({messages.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className="border border-gray-200 rounded-lg p-4">
-                  <p className="text-gray-900 mb-2">{message.text}</p>
-                  {message.sent_at && (
-                    <p className="text-xs text-gray-500">
-                      {new Date(message.sent_at).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )} */}
+      {/* Messages Section intentionally hidden for now */}
 
       {/* LLM Analysis Section */}
       {llmAnalysis && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-900">LLM Generated Report from Field Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="prose max-w-none">
-                <p className="text-gray-900 whitespace-pre-wrap">{llmAnalysis.text}</p>
-              </div>
-              <div className="mt-4 text-xs text-gray-500">
-                Generated: {new Date(llmAnalysis.created_at).toLocaleString()}
+        <section className="mb-6 rounded-lg bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => toggleSection('analysis')}
+            aria-expanded={openSections.analysis}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+          >
+            <span className="text-base font-medium text-gray-900">
+              LLM Generated Report from Field Notes
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-gray-500 transition-transform ${openSections.analysis ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {openSections.analysis && (
+            <div className="border-t border-gray-100 p-5">
+              <div className="rounded-md bg-gray-50 p-5">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{llmAnalysis.text}</p>
+                <div className="mt-4 text-xs text-gray-500">
+                  Generated {new Date(llmAnalysis.created_at).toLocaleString()}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </section>
       )}
 
       {/* No content message */}
       {images.length === 0 && messages.length === 0 && !llmAnalysis && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-gray-500">No content available for this report.</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg bg-gray-50 py-12 text-center">
+          <p className="text-sm text-gray-500">No content available for this report.</p>
+        </div>
       )}
     </div>
   );

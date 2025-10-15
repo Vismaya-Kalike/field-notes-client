@@ -74,11 +74,11 @@ export default function DistrictsList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Districts</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Districts</h1>
 
       {Object.entries(groupedByState).map(([state, stateDistricts]) => (
         <div key={state} className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">{state}</h2>
+          <h2 className="text-lg font-medium mb-3 text-gray-800">{state}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {stateDistricts.map((district) => (
               <Card
@@ -87,7 +87,7 @@ export default function DistrictsList() {
                 className="cursor-pointer transition-colors hover:bg-gray-50 border-gray-200"
               >
                 <CardHeader>
-                  <CardTitle className="text-lg text-gray-900">{district.district}</CardTitle>
+                  <CardTitle className="text-base font-medium text-gray-900">{district.district}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription>
