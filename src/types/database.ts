@@ -130,8 +130,6 @@ export interface GeneratedReport {
   created_at: string;
   facilitator_name: string;
   learning_centre_name: string;
-  images_count: number;
-  messages_count: number;
   has_llm_analysis: boolean;
   month_year_display: string;
 }
@@ -142,8 +140,6 @@ export interface ComprehensiveReport {
   learning_centre_id: string;
   month: number;
   year: number;
-  images_count: number;
-  messages_count: number;
   has_llm_analysis: boolean;
   created_at: string;
   updated_at: string;

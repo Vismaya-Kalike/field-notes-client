@@ -33,6 +33,8 @@ export default function ReportDetail() {
     images: true,
     analysis: true,
   });
+  const imageCount = images.length;
+  const fieldNoteCount = fieldNotes.length;
 
   const toggleSection = (section: SectionKey) => {
     setOpenSections((prev) => ({
@@ -227,11 +229,11 @@ export default function ReportDetail() {
           <div className="space-y-6 border-t border-gray-100 p-5">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
-                <div className="text-lg text-gray-900">{report.images_count}</div>
+                <div className="text-lg text-gray-900">{imageCount}</div>
                 <div className="text-xs uppercase tracking-wide text-gray-500">Images</div>
               </div>
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
-                <div className="text-lg text-gray-900">{report.messages_count}</div>
+                <div className="text-lg text-gray-900">{fieldNoteCount}</div>
                 <div className="text-xs uppercase tracking-wide text-gray-500">Field Notes</div>
               </div>
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">

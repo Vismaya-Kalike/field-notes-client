@@ -159,9 +159,9 @@ export default function LearningCentresList() {
                 {centre.partner_organisations && centre.partner_organisations.length > 0 && (
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Partner Organizations</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
                       {centre.partner_organisations.map((partner) => (
-                        <div key={partner.id} className="flex items-center space-x-2 rounded-full border border-gray-200 bg-white px-3 py-1.5">
+                        <div key={partner.id} className="flex items-center gap-2">
                           {partner.logo_url && (
                             <img
                               src={partner.logo_url}
@@ -172,7 +172,7 @@ export default function LearningCentresList() {
                               }}
                             />
                           )}
-                          <span className="text-sm font-medium text-gray-700">{partner.name}</span>
+                          <span className="text-gray-700">{partner.name}</span>
                         </div>
                       ))}
                     </div>
