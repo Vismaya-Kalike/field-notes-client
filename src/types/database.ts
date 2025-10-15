@@ -4,6 +4,21 @@ export interface District {
   learning_centres_count: number;
 }
 
+export interface DistrictPartnerOrganisation {
+  id: string;
+  district: string;
+  state: string;
+  partner_organisation_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DistrictWithPartnerOrganisations {
+  district: string;
+  state: string;
+  partner_organisations: PartnerOrganisation[];
+}
+
 export interface Facilitator {
   id: string;
   name: string;
@@ -19,6 +34,21 @@ export interface PartnerOrganisation {
   name: string;
   url?: string;
   contact?: string;
+  logo_url?: string;
+}
+
+export interface Volunteer {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LearningCentreVolunteer {
+  id: string;
+  learning_centre_id: string;
+  volunteer_id: string;
+  created_at: string;
 }
 
 export interface LearningCentre {
@@ -32,6 +62,7 @@ export interface LearningCentre {
   start_date: string;
   end_date: string;
   created_at: string;
+  volunteers?: Volunteer[];
   facilitators: Facilitator[];
   partner_organisations: PartnerOrganisation[];
 }

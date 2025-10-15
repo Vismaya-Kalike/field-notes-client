@@ -114,11 +114,11 @@ export default function LearningCentreDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center mb-8">
+      <div className="mb-8">
         <Button
           onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}`)}
-          variant="outline"
-          className="mr-4"
+          variant="ghost"
+          className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
         >
           ← Back to Learning Centres
         </Button>
@@ -164,26 +164,56 @@ export default function LearningCentreDetail() {
             </div>
           )}
 
+          {centre.volunteers && centre.volunteers.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-gray-900">Volunteers</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {centre.volunteers.map((volunteer) => (
+                  <div key={volunteer.id} className="mb-3 p-3 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-1">{volunteer.name}</h4>
+                    <p className="text-gray-600 text-sm">Volunteer</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {centre.partner_organisations && centre.partner_organisations.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3 text-gray-900">Partner Organizations</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {centre.partner_organisations.map((partner) => (
-                  <div key={partner.id} className="mb-3">
-                    <h4 className="font-medium text-gray-900 mb-1">{partner.name}</h4>
-                    {partner.url && (
-                      <a
-                        href={partner.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-700 hover:text-black text-sm underline"
-                      >
-                        {partner.url}
-                      </a>
-                    )}
-                    {partner.contact && (
-                      <p className="text-gray-600 text-sm">Contact: {partner.contact}</p>
-                    )}
+                  <div key={partner.id} className="mb-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-4 p-4">
+                      {partner.logo_url && (
+                        <div className="flex-shrink-0">
+                          <img 
+                            src={partner.logo_url} 
+                            alt={`${partner.name} logo`}
+                            className="w-20 h-20 object-contain bg-white rounded-lg p-3 shadow-sm"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-blue-900 mb-1">{partner.name}</h4>
+                        {partner.url && (
+                          <a
+                            href={partner.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 hover:text-blue-900 text-sm underline"
+                          >
+                            Visit Website
+                          </a>
+                        )}
+                        {partner.contact && (
+                          <p className="text-blue-800 text-sm mt-1">Contact: {partner.contact}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

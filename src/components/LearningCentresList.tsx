@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { LearningCentre } from '../types/database';
@@ -16,11 +16,7 @@ export default function LearningCentresList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLearningCentres();
-  }, [district, state]);
-
-  async function fetchLearningCentres() {
+  const fetchLearningCentres = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('learning_centres_with_details')
@@ -36,7 +32,11 @@ export default function LearningCentresList() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [district, state]);
+
+  useEffect(() => {
+    fetchLearningCentres();
+  }, [fetchLearningCentres]);
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -70,14 +70,15 @@ export default function LearningCentresList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center mb-8">
+      <div className="mb-8">
         <Button
           onClick={() => navigate('/districts')}
-          variant="outline"
-          className="mr-4"
+          variant="ghost"
+          className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
         >
           ← Back to Districts
         </Button>
+        
         <h1 className="text-3xl font-bold text-gray-900">
           Learning Centres in {district}, {state}
         </h1>
@@ -114,13 +115,36 @@ export default function LearningCentresList() {
                   </div>
                 )}
 
+                {centre.volunteers && centre.volunteers.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-800 mb-2">Volunteers:</h4>
+                    <div className="space-y-1">
+                      {centre.volunteers.map((volunteer) => (
+                        <div key={volunteer.id} className="text-sm text-gray-600">
+                          <span className="font-medium">{volunteer.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {centre.partner_organisations && centre.partner_organisations.length > 0 && (
                   <div>
                     <h4 className="font-medium text-gray-800 mb-2">Partner Organizations:</h4>
-                    <div className="space-y-1">
+                    <div className="flex flex-wrap gap-2">
                       {centre.partner_organisations.map((partner) => (
-                        <div key={partner.id} className="text-sm text-gray-600">
-                          <span className="font-medium">{partner.name}</span>
+                        <div key={partner.id} className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-full">
+                          {partner.logo_url && (
+                            <img 
+                              src={partner.logo_url} 
+                              alt={`${partner.name} logo`}
+                              className="w-8 h-8 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <span className="text-sm font-medium text-blue-800">{partner.name}</span>
                         </div>
                       ))}
                     </div>

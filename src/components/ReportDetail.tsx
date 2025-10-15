@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { GeneratedReport } from '../types/database';
@@ -40,13 +40,7 @@ export default function ReportDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (reportId) {
-      fetchReportDetails();
-    }
-  }, [reportId]);
-
-  async function fetchReportDetails() {
+  const fetchReportDetails = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -98,7 +92,13 @@ export default function ReportDetail() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [reportId]);
+
+  useEffect(() => {
+    if (reportId) {
+      fetchReportDetails();
+    }
+  }, [reportId, fetchReportDetails]);
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -149,11 +149,11 @@ export default function ReportDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center mb-8">
+      <div className="mb-8">
         <Button
           onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}`)}
-          variant="outline"
-          className="mr-4"
+          variant="ghost"
+          className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
         >
           ← Back to Learning Centre
         </Button>
@@ -213,20 +213,10 @@ export default function ReportDetail() {
                 <div key={image.id} className="border border-gray-200 rounded-lg overflow-hidden">
                   <img
                     src={image.photo_url}
-                    alt={image.caption || 'Report image'}
+                    alt="Report image"
                     className="w-full h-48 object-cover"
                     loading="lazy"
                   />
-                  {image.caption && (
-                    <div className="p-3">
-                      <p className="text-sm text-gray-600">{image.caption}</p>
-                      {image.sent_at && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(image.sent_at).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -234,8 +224,8 @@ export default function ReportDetail() {
         </Card>
       )}
 
-      {/* Messages Section */}
-      {messages.length > 0 && (
+      {/* Messages Section - Hidden for now */}
+      {/* {messages.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-xl text-gray-900">Messages ({messages.length})</CardTitle>
@@ -255,13 +245,13 @@ export default function ReportDetail() {
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* LLM Analysis Section */}
       {llmAnalysis && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl text-gray-900">AI Analysis</CardTitle>
+            <CardTitle className="text-xl text-gray-900">LLM Generated Report from Field Notes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-gray-50 rounded-lg p-6">
