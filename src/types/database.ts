@@ -64,7 +64,6 @@ export interface CoordinatorFieldNote {
 export interface Child {
   id: string;
   learning_centre_id: string;
-  name: string;
   alias?: string[];
   created_at: string;
   updated_at: string;

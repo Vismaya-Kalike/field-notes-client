@@ -46,11 +46,9 @@ export default function LearningCentresList() {
       const nameMatch = centre.centre_name?.toLowerCase().includes(query);
       const locationMatch = centre.city?.toLowerCase().includes(query) || centre.area?.toLowerCase().includes(query);
       const facilitatorMatch = centre.facilitators?.some((f) => f.name?.toLowerCase().includes(query));
-      const childMatch = centre.children?.some((child) => {
-        const childNameMatch = child.name?.toLowerCase().includes(query);
-        const aliasMatch = child.alias?.some((alias) => alias?.toLowerCase().includes(query));
-        return childNameMatch || aliasMatch;
-      });
+      const childMatch = centre.children?.some((child) =>
+        child.alias?.some((alias) => alias?.toLowerCase().includes(query))
+      );
       return Boolean(nameMatch || locationMatch || facilitatorMatch || childMatch);
     });
   }, [centres, search]);

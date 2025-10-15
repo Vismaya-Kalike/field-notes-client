@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { LearningCentre, GeneratedReport } from '../types/database';
@@ -17,6 +17,19 @@ export default function LearningCentreDetail() {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const childAliases = useMemo(() => {
+    if (!centre?.children) return [];
+    const aliases = new Set<string>();
+    centre.children.forEach((child) => {
+      child.alias?.forEach((alias) => {
+        const trimmed = alias?.trim();
+        if (trimmed) {
+          aliases.add(trimmed);
+        }
+      });
+    });
+    return Array.from(aliases).sort((a, b) => a.localeCompare(b));
+  }, [centre]);
 
   useEffect(() => {
     fetchCentreDetails();
@@ -220,11 +233,11 @@ export default function LearningCentreDetail() {
 
       <section className="mt-10">
         <div className="mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Generated Reports</h2>
+          <h2 className="text-lg font-medium text-gray-900">Field Note Reports</h2>
         </div>
         {reports.length === 0 ? (
           <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-gray-500">
-            No reports generated yet.
+            No reports yet.
           </p>
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -243,6 +256,33 @@ export default function LearningCentreDetail() {
                       →
                     </span>
                   </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <div className="mb-2 space-y-2">
+          <h2 className="text-lg font-medium text-gray-900">Children</h2>
+          <p className="text-sm text-gray-500">
+            These are anonymised aliases pulled from field notes, not the full list.
+          </p>
+        </div>
+        {childAliases.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-6 text-center text-sm text-gray-500">
+            No anonymised child aliases have been captured from the field notes yet.
+          </p>
+        ) : (
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <ul className="flex flex-wrap gap-2">
+              {childAliases.map((alias) => (
+                <li
+                  key={alias}
+                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-700"
+                >
+                  {alias}
                 </li>
               ))}
             </ul>
