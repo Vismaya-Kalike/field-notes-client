@@ -44,6 +44,59 @@ export interface Volunteer {
   updated_at: string;
 }
 
+export interface Coordinator {
+  id: string;
+  name: string;
+  contact?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoordinatorFieldNote {
+  id: string;
+  coordinator_id: string;
+  learning_centre_id: string;
+  note_text: string;
+  noted_at: string;
+  created_at: string;
+}
+
+export interface Child {
+  id: string;
+  learning_centre_id: string;
+  name: string;
+  alias?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChildFieldNoteLink {
+  id: string;
+  child_id: string;
+  field_note_id?: string | null;
+  coordinator_field_note_id?: string | null;
+  created_at: string;
+}
+
+export interface FieldImage {
+  id: string;
+  learning_centre_id: string;
+  facilitator_id?: string | null;
+  photo_url: string;
+  caption?: string;
+  sent_at?: string;
+  created_at: string;
+}
+
+export interface FieldNote {
+  id: string;
+  learning_centre_id: string;
+  facilitator_id?: string | null;
+  text: string;
+  sent_at?: string;
+  created_at: string;
+}
+
 export interface LearningCentreVolunteer {
   id: string;
   learning_centre_id: string;
@@ -65,6 +118,7 @@ export interface LearningCentre {
   volunteers?: Volunteer[];
   facilitators: Facilitator[];
   partner_organisations: PartnerOrganisation[];
+  children?: Child[];
 }
 
 export interface GeneratedReport {

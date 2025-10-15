@@ -2,22 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { GeneratedReport } from '../types/database';
+import type { GeneratedReport, FieldImage, FieldNote } from '../types/database';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
-
-interface ReportImage {
-  id: string;
-  photo_url: string;
-  caption?: string;
-  sent_at?: string;
-}
-
-interface ReportMessage {
-  id: string;
-  text: string;
-  sent_at?: string;
-}
 
 interface ReportLLMAnalysis {
   id: string;
@@ -36,8 +23,8 @@ export default function ReportDetail() {
   }>();
   const navigate = useNavigate();
   const [report, setReport] = useState<GeneratedReport | null>(null);
-  const [images, setImages] = useState<ReportImage[]>([]);
-  const [messages, setMessages] = useState<ReportMessage[]>([]);
+  const [images, setImages] = useState<FieldImage[]>([]);
+  const [fieldNotes, setFieldNotes] = useState<FieldNote[]>([]);
   const [llmAnalysis, setLlmAnalysis] = useState<ReportLLMAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,25 +55,81 @@ export default function ReportDetail() {
       if (reportError) throw reportError;
       setReport(reportData);
 
-      // Fetch images
-      const { data: imagesData, error: imagesError } = await supabase
-        .from('generated_report_images')
-        .select('*')
-        .eq('generated_report_id', reportId)
-        .order('sent_at', { ascending: true });
+      const reportYear = Number(reportData.year);
+      const reportMonth = Number(reportData.month);
+      const periodStart = new Date(Date.UTC(reportYear, reportMonth - 1, 1));
+      const periodEnd = new Date(Date.UTC(reportYear, reportMonth, 1));
+      const periodStartIso = periodStart.toISOString();
+      const periodEndIso = periodEnd.toISOString();
 
-      if (imagesError) throw imagesError;
-      setImages(imagesData || []);
+      const [
+        imagesPrimaryResult,
+        imagesFallbackResult,
+        notesPrimaryResult,
+        notesFallbackResult,
+      ] = await Promise.all([
+        supabase
+          .from('field_images')
+          .select('*')
+          .eq('learning_centre_id', reportData.learning_centre_id)
+          .not('sent_at', 'is', null)
+          .gte('sent_at', periodStartIso)
+          .lt('sent_at', periodEndIso),
+        supabase
+          .from('field_images')
+          .select('*')
+          .eq('learning_centre_id', reportData.learning_centre_id)
+          .is('sent_at', null)
+          .gte('created_at', periodStartIso)
+          .lt('created_at', periodEndIso),
+        supabase
+          .from('field_notes')
+          .select('*')
+          .eq('learning_centre_id', reportData.learning_centre_id)
+          .not('sent_at', 'is', null)
+          .gte('sent_at', periodStartIso)
+          .lt('sent_at', periodEndIso),
+        supabase
+          .from('field_notes')
+          .select('*')
+          .eq('learning_centre_id', reportData.learning_centre_id)
+          .is('sent_at', null)
+          .gte('created_at', periodStartIso)
+          .lt('created_at', periodEndIso),
+      ]);
 
-      // Fetch messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('generated_report_messages')
-        .select('*')
-        .eq('generated_report_id', reportId)
-        .order('sent_at', { ascending: true });
+      if (imagesPrimaryResult.error) throw imagesPrimaryResult.error;
+      if (imagesFallbackResult.error) throw imagesFallbackResult.error;
+      if (notesPrimaryResult.error) throw notesPrimaryResult.error;
+      if (notesFallbackResult.error) throw notesFallbackResult.error;
 
-      if (messagesError) throw messagesError;
-      setMessages(messagesData || []);
+      const uniqueImages = new Map<string, FieldImage>();
+      [...(imagesPrimaryResult.data ?? []), ...(imagesFallbackResult.data ?? [])].forEach((image) => {
+        uniqueImages.set(image.id, image);
+      });
+      const sortedImages = Array.from(uniqueImages.values()).sort((a, b) => {
+        const aDate = a.sent_at ?? a.created_at;
+        const bDate = b.sent_at ?? b.created_at;
+        if (!aDate && !bDate) return 0;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
+      });
+      setImages(sortedImages);
+
+      const uniqueNotes = new Map<string, FieldNote>();
+      [...(notesPrimaryResult.data ?? []), ...(notesFallbackResult.data ?? [])].forEach((note) => {
+        uniqueNotes.set(note.id, note);
+      });
+      const sortedNotes = Array.from(uniqueNotes.values()).sort((a, b) => {
+        const aDate = a.sent_at ?? a.created_at;
+        const bDate = b.sent_at ?? b.created_at;
+        if (!aDate && !bDate) return 0;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
+      });
+      setFieldNotes(sortedNotes);
 
       // Fetch LLM analysis if available
       if (reportData?.has_llm_analysis) {
@@ -259,7 +302,7 @@ export default function ReportDetail() {
         </section>
       )}
 
-      {/* Messages Section intentionally hidden for now */}
+      {/* Field Notes Section intentionally hidden for now */}
 
       {/* LLM Analysis Section */}
       {llmAnalysis && (
@@ -292,7 +335,7 @@ export default function ReportDetail() {
       )}
 
       {/* No content message */}
-      {images.length === 0 && messages.length === 0 && !llmAnalysis && (
+      {images.length === 0 && fieldNotes.length === 0 && !llmAnalysis && (
         <div className="rounded-lg bg-gray-50 py-12 text-center">
           <p className="text-sm text-gray-500">No content available for this report.</p>
         </div>

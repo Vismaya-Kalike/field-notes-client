@@ -46,7 +46,12 @@ export default function LearningCentresList() {
       const nameMatch = centre.centre_name?.toLowerCase().includes(query);
       const locationMatch = centre.city?.toLowerCase().includes(query) || centre.area?.toLowerCase().includes(query);
       const facilitatorMatch = centre.facilitators?.some((f) => f.name?.toLowerCase().includes(query));
-      return Boolean(nameMatch || locationMatch || facilitatorMatch);
+      const childMatch = centre.children?.some((child) => {
+        const childNameMatch = child.name?.toLowerCase().includes(query);
+        const aliasMatch = child.alias?.some((alias) => alias?.toLowerCase().includes(query));
+        return childNameMatch || aliasMatch;
+      });
+      return Boolean(nameMatch || locationMatch || facilitatorMatch || childMatch);
     });
   }, [centres, search]);
 
@@ -100,13 +105,13 @@ export default function LearningCentresList() {
         <div className="text-sm text-gray-500">
           {filteredCentres.length} centre{filteredCentres.length === 1 ? '' : 's'}
         </div>
-        <label className="relative w-full sm:w-64">
+        <label className="relative w-full sm:w-72">
           <span className="sr-only">Search learning centres</span>
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search centres, locations, facilitators"
+            placeholder="Search centres, locations, facilitators, children"
             className="w-full rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
           />
         </label>
