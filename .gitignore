@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .env
+
+# Local Supabase seed data (contains sensitive information)
+supabase/seed.sql
+supabase/seed_additional.sql
+supabase/seed_district_changes.sql
+supabase/seed.txt
