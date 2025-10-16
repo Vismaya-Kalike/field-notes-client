@@ -1,69 +1,50 @@
-# React + TypeScript + Vite
+# Field Notes Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A frontend dashboard for the Vismaya Kalike field reports pipeline. The application connects to a Supabase project and surfaces:
 
-Currently, two official plugins are available:
+- District-level summaries of learning centres
+- Centre-level rosters, facilitators, volunteers, and partner organisations
+- Linked artefacts such as coordinator notes, child field notes, and generated monthly reports
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The UI is built with React, TypeScript, Vite, Tailwind CSS, and Supabase JS.
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 18 or higher
+- npm (ships with Node) or another compatible package manager
+- Access to a Supabase project that exposes the views used by the app (for local development you can run `supabase start` from the `supabase/` folder after configuring your own seed data)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+2. **Create your environment file**
+   ```bash
+   cp env.example .env
+   ```
+   Update the new `.env` with your Supabase URL and anon/public key:
+   ```ini
+   VITE_SUPABASE_URL=...
+   VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+   ```
+3. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+   Visit the printed local URL (default `http://localhost:5173`) to open the dashboard.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Additional Commands
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- `npm run build` – Create a production build in `dist/`
+- `npm run preview` – Preview the production build locally
+- `npm run lint` – Run ESLint across the project
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Supabase Schema
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Database migrations live in `supabase/migrations/`. The repository no longer includes live seed data; supply your own sample datasets before running the migrations locally or on a fresh project.
+
+## Deployment
+
+The project includes a `vercel.json` file configured for the Vite build output. Any static host that serves the `dist/` directory and rewrites unknown routes to `index.html` will work. Remember to set the `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` environment variables in your hosting platform.
