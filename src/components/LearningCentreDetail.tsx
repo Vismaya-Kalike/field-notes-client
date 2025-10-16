@@ -1,10 +1,25 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import type { LearningCentre, GeneratedReport } from '../types/database';
+import type { LearningCentre, GeneratedReport, FieldNote, Coordinator } from '../types/database';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+
+function formatDisplayDate(isoString: string) {
+  if (!isoString) return 'Date unavailable';
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return 'Date unavailable';
+  const day = date.getDate();
+  const suffix =
+    day % 10 === 1 && day !== 11 ? 'st' :
+    day % 10 === 2 && day !== 12 ? 'nd' :
+    day % 10 === 3 && day !== 13 ? 'rd' :
+    'th';
+  const month = date.toLocaleString('en-US', { month: 'long' });
+  const year = date.getFullYear();
+  return `${month} ${day}${suffix} ${year}`;
+}
 
 export default function LearningCentreDetail() {
   const { centreId, state: stateParam, district: districtParam } = useParams<{ 
@@ -15,25 +30,25 @@ export default function LearningCentreDetail() {
   const navigate = useNavigate();
   const [centre, setCentre] = useState<LearningCentre | null>(null);
   const [reports, setReports] = useState<GeneratedReport[]>([]);
+  const [reportFieldNotes, setReportFieldNotes] = useState<
+    Record<string, Pick<FieldNote, 'id' | 'text' | 'created_at'>[]>
+  >({});
+  const [coordinatorNotes, setCoordinatorNotes] = useState<
+    Array<{
+      id: string;
+      note_text: string;
+      noted_at: string;
+      created_at: string;
+      coordinator_id: string;
+      coordinator?: Pick<Coordinator, 'name'> | null;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const childAliases = useMemo(() => {
-    if (!centre?.children) return [];
-    const aliases = new Set<string>();
-    centre.children.forEach((child) => {
-      child.alias?.forEach((alias) => {
-        const trimmed = alias?.trim();
-        if (trimmed) {
-          aliases.add(trimmed);
-        }
-      });
-    });
-    return Array.from(aliases).sort((a, b) => a.localeCompare(b));
-  }, [centre]);
-
   useEffect(() => {
     fetchCentreDetails();
     fetchReports();
+    fetchCoordinatorNotes();
   }, [centreId]);
 
   async function fetchCentreDetails() {
@@ -61,11 +76,94 @@ export default function LearningCentreDetail() {
         .order('month', { ascending: false });
 
       if (error) throw error;
-      setReports(data || []);
+      const reportData = data || [];
+      setReports(reportData);
+      await fetchFieldNotesForReports(reportData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch reports');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchFieldNotesForReports(reportList: GeneratedReport[]) {
+    if (!reportList.length) {
+      setReportFieldNotes({});
+      return;
+    }
+
+    const reportIds = reportList.map((report) => report.id);
+    try {
+      type NoteRow = Pick<FieldNote, 'id' | 'text' | 'created_at'> & {
+        generated_report_id: string | null;
+      };
+      const { data, error } = await supabase
+        .from('field_notes')
+        .select('id, text, generated_report_id, created_at')
+        .in('generated_report_id', reportIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const grouped: Record<string, Pick<FieldNote, 'id' | 'text' | 'created_at'>[]> = {};
+      (data ?? []).forEach((note: NoteRow) => {
+        if (!note.generated_report_id) return;
+        if (!grouped[note.generated_report_id]) {
+          grouped[note.generated_report_id] = [];
+        }
+        grouped[note.generated_report_id].push({
+          id: note.id,
+          text: note.text,
+          created_at: note.created_at,
+        });
+      });
+
+      setReportFieldNotes(grouped);
+    } catch (err) {
+      console.error('Failed to fetch field notes for reports', err);
+      setReportFieldNotes({});
+    }
+  }
+
+  async function fetchCoordinatorNotes() {
+    try {
+      const { data, error } = await supabase
+        .from('coordinator_field_notes')
+        .select(
+          'id, note_text, noted_at, created_at, coordinator_id, coordinator:coordinator_id(name)',
+        )
+        .eq('learning_centre_id', centreId)
+        .order('noted_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const normalized = (data ?? []).map((row: any) => {
+        const coordinatorValue = row.coordinator;
+        const coordinator =
+          Array.isArray(coordinatorValue) && coordinatorValue.length > 0
+            ? coordinatorValue[0]
+            : coordinatorValue ?? null;
+        return {
+          id: String(row.id),
+          note_text: String(row.note_text ?? ''),
+          noted_at: row.noted_at ? String(row.noted_at) : '',
+          created_at: row.created_at ? String(row.created_at) : '',
+          coordinator_id: String(row.coordinator_id ?? ''),
+          coordinator: coordinator ? { name: coordinator.name ?? null } : null,
+        };
+      });
+
+      normalized.sort((a, b) => {
+        const dateA = Date.parse(a.noted_at || a.created_at || '');
+        const dateB = Date.parse(b.noted_at || b.created_at || '');
+        return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+      });
+
+      setCoordinatorNotes(normalized);
+    } catch (err) {
+      console.error('Failed to fetch coordinator field notes', err);
+      setCoordinatorNotes([]);
     }
   }
 
@@ -129,7 +227,11 @@ export default function LearningCentreDetail() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <Button
-          onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}`)}
+          onClick={() =>
+            navigate(
+              `/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}`,
+            )
+          }
           variant="link"
           className="mb-2 gap-1 text-gray-500 hover:text-gray-900"
         >
@@ -233,7 +335,10 @@ export default function LearningCentreDetail() {
 
       <section className="mt-10">
         <div className="mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Field Note Reports</h2>
+          <h2 className="text-lg font-medium text-gray-900">Monthly Facilitator Updates</h2>
+          <p className="text-sm text-gray-500">
+            These are monthly reports generated based on the field notes shared by the facilitators over WhatsApp.
+          </p>
         </div>
         {reports.length === 0 ? (
           <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-gray-500">
@@ -242,51 +347,146 @@ export default function LearningCentreDetail() {
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <ul className="divide-y divide-gray-200">
-              {reports.map((report) => (
-                <li key={report.id}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}/report/${report.id}`)}
-                    className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  >
-                    <span className="text-sm text-gray-900 underline underline-offset-4">
-                      {report.month_year_display}
-                    </span>
-                    <span className="text-xs text-gray-400" aria-hidden="true">
-                      →
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {reports.map((report) => {
+                const notes = reportFieldNotes[report.id] ?? [];
+                const previewNotes = notes.slice(0, 3);
+
+                return (
+                  <li key={report.id}>
+                    <div className="flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(
+                              districtParam || '',
+                            )}/centre/${centreId}/report/${report.id}`,
+                          )
+                        }
+                        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                      >
+                        <span className="text-sm text-gray-900 underline underline-offset-4">
+                          {report.month_year_display}
+                        </span>
+                        <span className="text-xs text-gray-400" aria-hidden="true">
+                          →
+                        </span>
+                      </button>
+                      {previewNotes.length > 0 && (
+                        <div className="border-t border-gray-100 bg-gray-50/60 px-5 py-3 text-sm text-gray-600">
+                          <div className="space-y-2">
+                            {previewNotes.map((note) => (
+                              <p key={note.id}>{note.text}</p>
+                            ))}
+                            {notes.length > previewNotes.length && (
+                              <p className="text-xs text-gray-400">
+                                Showing {previewNotes.length} of {notes.length} field notes.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
       </section>
 
       <section className="mt-10">
-        <div className="mb-2 space-y-2">
+        <div className="mb-4">
+          <h2 className="text-lg font-medium text-gray-900">Coordinator Field Notes</h2>
+          <p className="text-sm text-gray-500">
+            These notes come directly from coordinators after their visits to the centre.
+          </p>
+        </div>
+        {coordinatorNotes.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
+            No coordinator field notes recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <ul className="divide-y divide-gray-200">
+              {coordinatorNotes.map((note) => {
+                const displayDate = note.noted_at || note.created_at;
+                const formattedDate = formatDisplayDate(displayDate);
+                const coordinatorName = note.coordinator?.name || 'Coordinator';
+
+                return (
+                  <li key={note.id}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(
+                            districtParam || '',
+                          )}/centre/${centreId}/coordinator-notes/${note.id}`,
+                        )
+                      }
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    >
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-gray-900">
+                          {coordinatorName} — {formattedDate}
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400" aria-hidden="true">
+                        →
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <div className="mb-2">
           <h2 className="text-lg font-medium text-gray-900">Children</h2>
           <p className="text-sm text-gray-500">
             These are anonymised aliases pulled from field notes, not the full list.
           </p>
         </div>
-        {childAliases.length === 0 ? (
+        {centre?.children && centre.children.length > 0 ? (
+          <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-700">
+            <ul className="space-y-2">
+              {centre.children
+                .map((child) => ({
+                  id: child.id,
+                  aliases: child.alias?.filter((alias) => Boolean(alias && alias.trim())) ?? [],
+                }))
+                .map((child) => ({
+                  id: child.id,
+                  label: child.aliases.length > 0 ? child.aliases.join(', ') : 'Unnamed Child',
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
+                .map((child) => (
+                  <li key={child.id}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(
+                            districtParam || '',
+                          )}/centre/${centreId}/child/${child.id}`,
+                        )
+                      }
+                      className="w-full rounded-md border border-gray-200 px-4 py-2 text-left transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    >
+                      {child.label}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ) : (
           <p className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-6 text-center text-sm text-gray-500">
             No anonymised child aliases have been captured from the field notes yet.
           </p>
-        ) : (
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <ul className="flex flex-wrap gap-2">
-              {childAliases.map((alias) => (
-                <li
-                  key={alias}
-                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-700"
-                >
-                  {alias}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
       </section>
     </div>

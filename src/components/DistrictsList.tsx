@@ -74,7 +74,7 @@ export default function DistrictsList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Districts</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Learning Centers</h1>
 
       {Object.entries(groupedByState).map(([state, stateDistricts]) => (
         <div key={state} className="mb-8">
@@ -83,7 +83,7 @@ export default function DistrictsList() {
             {stateDistricts.map((district) => (
               <Card
                 key={`${district.state}-${district.district}`}
-                onClick={() => navigate(`/districts/${encodeURIComponent(district.state)}/${encodeURIComponent(district.district)}`)}
+                onClick={() => navigate(`/${encodeURIComponent(district.state)}/${encodeURIComponent(district.district)}`)}
                 className="cursor-pointer transition-colors hover:bg-gray-50 border-gray-200"
               >
                 <CardHeader>

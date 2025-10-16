@@ -1,7 +1,9 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import DistrictsList from './components/DistrictsList'
 import LearningCentresList from './components/LearningCentresList'
 import LearningCentreDetail from './components/LearningCentreDetail'
+import CoordinatorFieldNoteDetail from './components/CoordinatorFieldNoteDetail'
+import ChildFieldNotes from './components/ChildFieldNotes'
 import ReportDetail from './components/ReportDetail'
 
 function App() {
@@ -21,11 +23,18 @@ function App() {
         </div>
       </header>
       <Routes>
-        <Route path="/" element={<Navigate to="/districts" replace />} />
-        <Route path="/districts" element={<DistrictsList />} />
-        <Route path="/districts/:state/:district" element={<LearningCentresList />} />
-        <Route path="/districts/:state/:district/centre/:centreId" element={<LearningCentreDetail />} />
-        <Route path="/districts/:state/:district/centre/:centreId/report/:reportId" element={<ReportDetail />} />
+        <Route path="/" element={<DistrictsList />} />
+        <Route path="/:state/:district" element={<LearningCentresList />} />
+        <Route path="/:state/:district/centre/:centreId" element={<LearningCentreDetail />} />
+        <Route
+          path="/:state/:district/centre/:centreId/coordinator-notes/:noteId"
+          element={<CoordinatorFieldNoteDetail />}
+        />
+        <Route
+          path="/:state/:district/centre/:centreId/child/:childId"
+          element={<ChildFieldNotes />}
+        />
+        <Route path="/:state/:district/centre/:centreId/report/:reportId" element={<ReportDetail />} />
       </Routes>
     </div>
   )

@@ -12,7 +12,7 @@ interface ReportLLMAnalysis {
   created_at: string;
 }
 
-type SectionKey = 'summary' | 'images' | 'analysis';
+type SectionKey = 'summary' | 'images' | 'analysis' | 'notes';
 
 export default function ReportDetail() {
   const { reportId, centreId, state: stateParam, district: districtParam } = useParams<{ 
@@ -31,6 +31,7 @@ export default function ReportDetail() {
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     summary: true,
     images: true,
+    notes: false,
     analysis: true,
   });
   const imageCount = images.length;
@@ -202,7 +203,11 @@ export default function ReportDetail() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <Button
-          onClick={() => navigate(`/districts/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}`)}
+          onClick={() =>
+            navigate(
+              `/${encodeURIComponent(stateParam || '')}/${encodeURIComponent(districtParam || '')}/centre/${centreId}`,
+            )
+          }
           variant="link"
           className="mb-2 gap-1 text-gray-500 hover:text-gray-900"
         >
@@ -304,8 +309,6 @@ export default function ReportDetail() {
         </section>
       )}
 
-      {/* Field Notes Section intentionally hidden for now */}
-
       {/* LLM Analysis Section */}
       {llmAnalysis && (
         <section className="mb-6 rounded-lg bg-white shadow-sm">
@@ -331,6 +334,51 @@ export default function ReportDetail() {
                   Generated {new Date(llmAnalysis.created_at).toLocaleString()}
                 </div>
               </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Field Notes Section */}
+      {fieldNotes.length > 0 && (
+        <section className="mt-6 rounded-lg bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => toggleSection('notes')}
+            aria-expanded={openSections.notes}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+          >
+            <div>
+              <span className="block text-base font-medium text-gray-900">Field Notes</span>
+              <span className="block text-xs text-gray-500">
+                {fieldNotes.length} {fieldNotes.length === 1 ? 'note' : 'notes'}
+              </span>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-gray-500 transition-transform ${openSections.notes ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {openSections.notes && (
+            <div className="space-y-4 border-t border-gray-100 p-5">
+              {fieldNotes.map((note) => {
+                const displayDate = note.sent_at ?? note.created_at;
+                return (
+                  <article
+                    key={note.id}
+                    className="rounded-lg border border-gray-100 bg-gray-50/70 p-4 shadow-sm"
+                  >
+                    {displayDate && (
+                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                        {new Date(displayDate).toLocaleString()}
+                      </p>
+                    )}
+                    <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+                      {note.text}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

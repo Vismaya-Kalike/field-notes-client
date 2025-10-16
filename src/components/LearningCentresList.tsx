@@ -87,11 +87,11 @@ export default function LearningCentresList() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <Button
-          onClick={() => navigate('/districts')}
+          onClick={() => navigate('/')}
           variant="link"
           className="mb-2 gap-1 text-gray-500 hover:text-gray-900"
         >
-          ← Back to Districts
+          ← Back Home
         </Button>
         
         <h1 className="text-xl font-medium text-gray-900">
@@ -122,7 +122,7 @@ export default function LearningCentresList() {
           {filteredCentres.map((centre) => (
             <Card
               key={centre.id}
-              onClick={() => navigate(`/districts/${encodeURIComponent(state)}/${encodeURIComponent(district)}/centre/${centre.id}`)}
+              onClick={() => navigate(`/${encodeURIComponent(state)}/${encodeURIComponent(district)}/centre/${centre.id}`)}
               className="cursor-pointer transition-shadow hover:shadow-md"
             >
               <CardHeader className="space-y-1">
