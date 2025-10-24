@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { LearningCentre } from '../types/database';
 import { Card, CardContent, CardHeader } from './ui/card';
@@ -12,13 +13,11 @@ export default function LearningCentresList() {
   
   const state = stateParam ? decodeURIComponent(stateParam) : '';
   const district = districtParam ? decodeURIComponent(districtParam) : '';
-  const [centres, setCentres] = useState<LearningCentre[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  const fetchLearningCentres = useCallback(async () => {
-    try {
+  const { data: centres = [], isLoading: loading, error: centreError } = useQuery({
+    queryKey: ['learningCentres', state, district],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_with_details')
         .select('*')
@@ -27,17 +26,12 @@ export default function LearningCentresList() {
         .order('centre_name', { ascending: true });
 
       if (error) throw error;
-      setCentres(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch learning centres');
-    } finally {
-      setLoading(false);
-    }
-  }, [district, state]);
+      return (data || []) as LearningCentre[]
+    },
+    enabled: !!state && !!district,
+  })
 
-  useEffect(() => {
-    fetchLearningCentres();
-  }, [fetchLearningCentres]);
+  const error = centreError?.message || null;
 
   const filteredCentres = useMemo(() => {
     if (!search.trim()) return centres;

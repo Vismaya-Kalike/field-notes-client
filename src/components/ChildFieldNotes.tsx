@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type {
   Child,
@@ -49,15 +50,12 @@ export default function ChildFieldNotes() {
   }>();
   const navigate = useNavigate();
 
-  const [child, setChild] = useState<ChildWithContext | null>(null);
-  const [facilitatorNotes, setFacilitatorNotes] = useState<FacilitatorNote[]>([]);
-  const [coordinatorNotes, setCoordinatorNotes] = useState<CoordinatorNote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const fetchChild = useCallback(async () => {
+  // Fetch child data
+  const { data: child, isLoading: childLoading, error: childError } = useQuery({
+    queryKey: ['child', childId],
+    queryFn: async () => {
     const { data, error } = await supabase
       .from('children')
       .select(
@@ -73,7 +71,7 @@ const fetchChild = useCallback(async () => {
         ? learningCentreValue[0]
         : learningCentreValue ?? null;
 
-    setChild({
+    return {
       id: String(data.id),
       learning_centre_id: String(data.learning_centre_id ?? centreId ?? ''),
       alias: Array.isArray(data.alias)
@@ -89,10 +87,15 @@ const fetchChild = useCallback(async () => {
             state: learningCentre.state ?? '',
           }
         : null,
-    });
-  }, [childId, centreId])
+    } as ChildWithContext
+    },
+    enabled: !!childId,
+  })
 
-  const fetchNotes = useCallback(async () => {
+  // Fetch field notes
+  const { data: notesData } = useQuery({
+    queryKey: ['childNotes', childId],
+    queryFn: async () => {
     const { data, error } = await supabase
       .from('child_field_note_links')
       .select(`
@@ -176,23 +179,15 @@ const fetchChild = useCallback(async () => {
       return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
     });
 
-    setFacilitatorNotes(facilitator);
-    setCoordinatorNotes(coordinator);
-  }, [childId])
+    return { facilitator, coordinator }
+    },
+    enabled: !!childId,
+  })
 
-  useEffect(() => {
-    if (!childId) return;
-    const fetchAll = async () => {
-      try {
-        await Promise.all([fetchChild(), fetchNotes()]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch child notes');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAll();
-  }, [childId, fetchChild, fetchNotes]);
+  const facilitatorNotes = notesData?.facilitator || []
+  const coordinatorNotes = notesData?.coordinator || []
+  const loading = childLoading
+  const error = childError?.message || null
 
   const aliases = useMemo(() => child?.alias ?? [], [child]);
   const aliasLower = useMemo(() => aliases.map((alias) => alias.toLowerCase()), [aliases]);

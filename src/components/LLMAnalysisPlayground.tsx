@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { generateLLMAnalysis } from '../lib/openai'
 import { Card, CardContent, CardHeader } from './ui/card'
@@ -29,16 +30,12 @@ interface SimpleLearningCentre {
 }
 
 export default function LLMAnalysisPlayground() {
-  const [learningCentres, setLearningCentres] = useState<SimpleLearningCentre[]>([])
   const [selectedCentreId, setSelectedCentreId] = useState<string>('')
-  const [availableMonths, setAvailableMonths] = useState<MonthYear[]>([])
   const [selectedMonth, setSelectedMonth] = useState<string>('')
   const [prompt, setPrompt] = useState<string>('')
-  const [fieldNotes, setFieldNotes] = useState<FieldNote[]>([])
-  const [images, setImages] = useState<FieldImage[]>([])
   const [analysis, setAnalysis] = useState<string>('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [analysisLoading, setAnalysisLoading] = useState(false)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   // Load default prompt from the scripts
   const defaultPrompt = `You are analyzing field notes from a learning facilitator named {{FACILITATOR_NAME}}. The facilitator works with oppressed communities and creates after school learning spaces with a view to build agency. Spaces are designed to be safe, open, joyful and self-determined where learners can make their own decisions.
@@ -61,22 +58,24 @@ IMAGES PROVIDED: {{IMAGES_COUNT}} work-related photos showing field activities
 
 Write this as a professional field work assessment report that recognizes the visual documentation as the primary evidence of the facilitator's work and impact. Don't make up any details and don't add any details that are not in the text messages or images. Don't include the messages and photos in the report. You don't have to describe each photo. You don't need to include the purpose or details about the organisation. It's okay if the report is short and doesn't have a lot of details. Do not include any title or date in the report.`
 
-  const fetchLearningCentres = useCallback(async () => {
-    try {
+  // Fetch learning centres
+  const { data: learningCentres = [] } = useQuery({
+    queryKey: ['learningCentres'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_with_details')
         .select('id, centre_name, district, state, facilitators')
         .order('centre_name')
 
       if (error) throw error
-      setLearningCentres(data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch learning centres')
-    }
-  }, [])
+      return (data || []) as SimpleLearningCentre[]
+    },
+  })
 
-  const fetchAvailableMonths = useCallback(async () => {
-    try {
+  // Fetch available months for selected centre
+  const { data: availableMonths = [] } = useQuery({
+    queryKey: ['availableMonths', selectedCentreId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('generated_reports_summary')
         .select('month, year')
@@ -95,77 +94,70 @@ Write this as a professional field work assessment report that recognizes the vi
         })
       }))
 
-      setAvailableMonths(months)
-      if (months.length > 0) {
+      // Auto-select first month
+      if (months.length > 0 && !selectedMonth) {
         setSelectedMonth(`${months[0].year}-${months[0].month}`)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch available months')
-    }
-  }, [selectedCentreId])
 
-  const fetchData = useCallback(async () => {
-    if (!selectedMonth) return
+      return months
+    },
+    enabled: !!selectedCentreId,
+  })
 
-    const [year, month] = selectedMonth.split('-').map(Number)
+  // Fetch field notes and images for selected month
+  const { data: fieldData } = useQuery({
+    queryKey: ['fieldData', selectedCentreId, selectedMonth],
+    queryFn: async () => {
+      if (!selectedMonth) return { notes: [], images: [] }
 
-    try {
-      // Fetch field notes
+      const [year, month] = selectedMonth.split('-').map(Number)
       const startDate = new Date(year, month - 1, 1)
       const endDate = new Date(year, month, 0, 23, 59, 59)
 
-      const { data: notesData, error: notesError } = await supabase
-        .from('field_notes')
-        .select('*')
-        .eq('learning_centre_id', selectedCentreId)
-        .gte('sent_at', startDate.toISOString())
-        .lte('sent_at', endDate.toISOString())
-        .order('sent_at', { ascending: true })
+      const [notesResult, imagesResult] = await Promise.all([
+        supabase
+          .from('field_notes')
+          .select('*')
+          .eq('learning_centre_id', selectedCentreId)
+          .gte('sent_at', startDate.toISOString())
+          .lte('sent_at', endDate.toISOString())
+          .order('sent_at', { ascending: true }),
+        supabase
+          .from('field_images')
+          .select('*')
+          .eq('learning_centre_id', selectedCentreId)
+          .gte('sent_at', startDate.toISOString())
+          .lte('sent_at', endDate.toISOString())
+          .order('sent_at', { ascending: true })
+      ])
 
-      if (notesError) throw notesError
-      setFieldNotes(notesData || [])
+      if (notesResult.error) throw notesResult.error
+      if (imagesResult.error) throw imagesResult.error
 
-      // Fetch images
-      const { data: imagesData, error: imagesError } = await supabase
-        .from('field_images')
-        .select('*')
-        .eq('learning_centre_id', selectedCentreId)
-        .gte('sent_at', startDate.toISOString())
-        .lte('sent_at', endDate.toISOString())
-        .order('sent_at', { ascending: true })
+      return {
+        notes: (notesResult.data || []) as FieldNote[],
+        images: (imagesResult.data || []) as FieldImage[]
+      }
+    },
+    enabled: !!selectedCentreId && !!selectedMonth,
+  })
 
-      if (imagesError) throw imagesError
-      setImages(imagesData || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
-    }
-  }, [selectedCentreId, selectedMonth])
+  const fieldNotes = fieldData?.notes || []
+  const images = fieldData?.images || []
 
-  useEffect(() => {
+  // Set default prompt on mount
+  if (!prompt) {
     setPrompt(defaultPrompt)
-    fetchLearningCentres()
-  }, [defaultPrompt, fetchLearningCentres])
-
-  useEffect(() => {
-    if (selectedCentreId) {
-      fetchAvailableMonths()
-    }
-  }, [selectedCentreId, fetchAvailableMonths])
-
-  useEffect(() => {
-    if (selectedCentreId && selectedMonth) {
-      fetchData()
-    }
-  }, [selectedCentreId, selectedMonth, fetchData])
+  }
 
   async function runAnalysis() {
     if (!selectedCentreId || !selectedMonth) {
-      setError('Please select a learning centre and month')
+      setAnalysisError('Please select a learning centre and month')
       return
     }
 
-    setLoading(true)
-    setError(null)
+    setAnalysisLoading(true)
+    setAnalysisError(null)
     setAnalysis('')
 
     try {
@@ -204,9 +196,9 @@ Write this as a professional field work assessment report that recognizes the vi
 
       setAnalysis(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate analysis')
+      setAnalysisError(err instanceof Error ? err.message : 'Failed to generate analysis')
     } finally {
-      setLoading(false)
+      setAnalysisLoading(false)
     }
   }
 
@@ -311,15 +303,15 @@ Write this as a professional field work assessment report that recognizes the vi
 
             <Button
               onClick={runAnalysis}
-              disabled={loading || !selectedCentreId || !selectedMonth}
+              disabled={analysisLoading || !selectedCentreId || !selectedMonth}
               className="w-full"
             >
-              {loading ? 'Generating Analysis...' : 'Run Analysis'}
+              {analysisLoading ? 'Generating Analysis...' : 'Run Analysis'}
             </Button>
 
-            {error && (
+            {analysisError && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
-                {error}
+                {analysisError}
               </div>
             )}
           </div>
@@ -331,17 +323,17 @@ Write this as a professional field work assessment report that recognizes the vi
                 <h2 className="text-lg font-medium">Analysis Result</h2>
               </CardHeader>
               <CardContent>
-                {loading && (
+                {analysisLoading && (
                   <div className="text-center py-8 text-gray-500">
                     Generating analysis...
                   </div>
                 )}
-                {!loading && !analysis && (
+                {!analysisLoading && !analysis && (
                   <div className="text-center py-8 text-gray-400">
                     Select a learning centre and month, then click "Run Analysis" to see results here.
                   </div>
                 )}
-                {!loading && analysis && (
+                {!analysisLoading && analysis && (
                   <div className="prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-4 rounded-md">
                       {analysis}

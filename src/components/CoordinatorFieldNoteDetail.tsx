@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type {
   Coordinator,
@@ -23,10 +23,6 @@ export default function CoordinatorFieldNoteDetail() {
   }>();
   const navigate = useNavigate();
 
-  const [note, setNote] = useState<CoordinatorNoteDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const formatDisplayDate = (isoString: string) => {
     if (!isoString) return 'Date unavailable';
     const date = new Date(isoString);
@@ -42,8 +38,9 @@ export default function CoordinatorFieldNoteDetail() {
     return `${month} ${day}${suffix} ${year}`;
   };
 
-  const fetchNote = useCallback(async () => {
-    try {
+  const { data: note, isLoading: loading, error: noteError } = useQuery({
+    queryKey: ['coordinatorNote', noteId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('coordinator_field_notes')
         .select(
@@ -53,11 +50,6 @@ export default function CoordinatorFieldNoteDetail() {
         .single();
 
       if (error) throw error;
-
-      if (!data) {
-        setError('Coordinator field note not found.');
-        return;
-      }
 
       const coordinatorValue = data.coordinator as unknown;
       const coordinator =
@@ -69,7 +61,7 @@ export default function CoordinatorFieldNoteDetail() {
       const learningCentre =
         Array.isArray(centreValue) && centreValue.length > 0 ? centreValue[0] : centreValue ?? null;
 
-      setNote({
+      return {
         id: String(data.id),
         learning_centre_id: String(data.learning_centre_id ?? centreId ?? ''),
         coordinator_id: String(data.coordinator_id ?? ''),
@@ -90,18 +82,12 @@ export default function CoordinatorFieldNoteDetail() {
               state: learningCentre.state ?? '',
             }
           : null,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch coordinator field note');
-    } finally {
-      setLoading(false);
-    }
-  }, [noteId, centreId])
+      } as CoordinatorNoteDetail
+    },
+    enabled: !!noteId,
+  })
 
-  useEffect(() => {
-    if (!noteId) return;
-    fetchNote();
-  }, [noteId, fetchNote]);
+  const error = noteError?.message || null;
 
   const backToCentre = () =>
     navigate(

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import type { LearningCentre, GeneratedReport, FieldNote, Coordinator } from '../types/database';
+import type { LearningCentre, GeneratedReport, FieldNote } from '../types/database';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
@@ -28,26 +28,11 @@ export default function LearningCentreDetail() {
     district: string; 
   }>();
   const navigate = useNavigate();
-  const [centre, setCentre] = useState<LearningCentre | null>(null);
-  const [reports, setReports] = useState<GeneratedReport[]>([]);
-  const [reportFieldNotes, setReportFieldNotes] = useState<
-    Record<string, Pick<FieldNote, 'id' | 'text' | 'created_at'>[]>
-  >({});
-  const [coordinatorNotes, setCoordinatorNotes] = useState<
-    Array<{
-      id: string;
-      note_text: string;
-      noted_at: string;
-      created_at: string;
-      coordinator_id: string;
-      coordinator?: Pick<Coordinator, 'name'> | null;
-    }>
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchCentreDetails = useCallback(async () => {
-    try {
+  // Fetch centre details
+  const { data: centre, isLoading: centreLoading, error: centreError } = useQuery({
+    queryKey: ['centre', centreId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_with_details')
         .select('*')
@@ -55,20 +40,37 @@ export default function LearningCentreDetail() {
         .single();
 
       if (error) throw error;
-      setCentre(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch centre details');
-    }
-  }, [centreId])
+      return data as LearningCentre
+    },
+    enabled: !!centreId,
+  })
 
-  const fetchFieldNotesForReports = useCallback(async (reportList: GeneratedReport[]) => {
-    if (!reportList.length) {
-      setReportFieldNotes({});
-      return;
-    }
+  // Fetch reports
+  const { data: reports = [] } = useQuery({
+    queryKey: ['reports', centreId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('generated_reports_summary')
+        .select('*')
+        .eq('learning_centre_id', centreId)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
 
-    const reportIds = reportList.map((report) => report.id);
-    try {
+      if (error) throw error;
+      return (data || []) as GeneratedReport[]
+    },
+    enabled: !!centreId,
+  })
+
+  // Fetch field notes for reports
+  const { data: reportFieldNotes = {} } = useQuery({
+    queryKey: ['reportFieldNotes', centreId, reports.map(r => r.id).join(',')],
+    queryFn: async () => {
+      if (!reports.length) {
+        return {};
+      }
+
+      const reportIds = reports.map((report) => report.id);
       type NoteRow = Pick<FieldNote, 'id' | 'text' | 'created_at'> & {
         generated_report_id: string | null;
       };
@@ -93,35 +95,15 @@ export default function LearningCentreDetail() {
         });
       });
 
-      setReportFieldNotes(grouped);
-    } catch (err) {
-      console.error('Failed to fetch field notes for reports', err);
-      setReportFieldNotes({});
-    }
-  }, [])
+      return grouped
+    },
+    enabled: !!centreId && reports.length > 0,
+  })
 
-  const fetchReports = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('generated_reports_summary')
-        .select('*')
-        .eq('learning_centre_id', centreId)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
-
-      if (error) throw error;
-      const reportData = data || [];
-      setReports(reportData);
-      await fetchFieldNotesForReports(reportData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch reports');
-    } finally {
-      setLoading(false);
-    }
-  }, [centreId, fetchFieldNotesForReports])
-
-  const fetchCoordinatorNotes = useCallback(async () => {
-    try {
+  // Fetch coordinator notes
+  const { data: coordinatorNotes = [] } = useQuery({
+    queryKey: ['coordinatorNotes', centreId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('coordinator_field_notes')
         .select(
@@ -164,18 +146,13 @@ export default function LearningCentreDetail() {
         return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
       });
 
-      setCoordinatorNotes(normalized);
-    } catch (err) {
-      console.error('Failed to fetch coordinator field notes', err);
-      setCoordinatorNotes([]);
-    }
-  }, [centreId])
+      return normalized
+    },
+    enabled: !!centreId,
+  })
 
-  useEffect(() => {
-    fetchCentreDetails();
-    fetchReports();
-    fetchCoordinatorNotes();
-  }, [centreId, fetchCentreDetails, fetchReports, fetchCoordinatorNotes]);
+  const loading = centreLoading
+  const error = centreError?.message || null;
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

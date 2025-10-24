@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { GeneratedReport, FieldImage, FieldNote } from '../types/database';
@@ -22,20 +23,12 @@ export default function ReportDetail() {
     district: string;
   }>();
   const navigate = useNavigate();
-  const [report, setReport] = useState<GeneratedReport | null>(null);
-  const [images, setImages] = useState<FieldImage[]>([]);
-  const [fieldNotes, setFieldNotes] = useState<FieldNote[]>([]);
-  const [llmAnalysis, setLlmAnalysis] = useState<ReportLLMAnalysis | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     summary: true,
     images: true,
     notes: false,
     analysis: true,
   });
-  const imageCount = images.length;
-  const fieldNoteCount = fieldNotes.length;
 
   const toggleSection = (section: SectionKey) => {
     setOpenSections((prev) => ({
@@ -44,11 +37,10 @@ export default function ReportDetail() {
     }));
   };
 
-  const fetchReportDetails = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch report summary
+  // Fetch report summary
+  const { data: report, isLoading: reportLoading, error: reportError } = useQuery({
+    queryKey: ['report', reportId],
+    queryFn: async () => {
       const { data: reportData, error: reportError } = await supabase
         .from('generated_reports_summary')
         .select('*')
@@ -56,46 +48,37 @@ export default function ReportDetail() {
         .single();
 
       if (reportError) throw reportError;
-      setReport(reportData);
+      return reportData as GeneratedReport
+    },
+    enabled: !!reportId,
+  })
 
-      const reportYear = Number(reportData.year);
-      const reportMonth = Number(reportData.month);
-      const periodStart = new Date(Date.UTC(reportYear, reportMonth - 1, 1));
-      const periodEnd = new Date(Date.UTC(reportYear, reportMonth, 1));
-      const periodStartIso = periodStart.toISOString();
-      const periodEndIso = periodEnd.toISOString();
+  // Calculate period dates from report
+  const reportYear = report ? Number(report.year) : 0;
+  const reportMonth = report ? Number(report.month) : 0;
+  const periodStart = report ? new Date(Date.UTC(reportYear, reportMonth - 1, 1)) : null;
+  const periodEnd = report ? new Date(Date.UTC(reportYear, reportMonth, 1)) : null;
+  const periodStartIso = periodStart?.toISOString() ?? '';
+  const periodEndIso = periodEnd?.toISOString() ?? '';
 
-      const [
-        imagesPrimaryResult,
-        imagesFallbackResult,
-        notesPrimaryResult,
-        notesFallbackResult,
-      ] = await Promise.all([
+  // Fetch images
+  const { data: images = [] } = useQuery({
+    queryKey: ['reportImages', report?.learning_centre_id, periodStartIso, periodEndIso],
+    queryFn: async () => {
+      if (!report) return [];
+
+      const [imagesPrimaryResult, imagesFallbackResult] = await Promise.all([
         supabase
           .from('field_images')
           .select('*')
-          .eq('learning_centre_id', reportData.learning_centre_id)
+          .eq('learning_centre_id', report.learning_centre_id)
           .not('sent_at', 'is', null)
           .gte('sent_at', periodStartIso)
           .lt('sent_at', periodEndIso),
         supabase
           .from('field_images')
           .select('*')
-          .eq('learning_centre_id', reportData.learning_centre_id)
-          .is('sent_at', null)
-          .gte('created_at', periodStartIso)
-          .lt('created_at', periodEndIso),
-        supabase
-          .from('field_notes')
-          .select('*')
-          .eq('learning_centre_id', reportData.learning_centre_id)
-          .not('sent_at', 'is', null)
-          .gte('sent_at', periodStartIso)
-          .lt('sent_at', periodEndIso),
-        supabase
-          .from('field_notes')
-          .select('*')
-          .eq('learning_centre_id', reportData.learning_centre_id)
+          .eq('learning_centre_id', report.learning_centre_id)
           .is('sent_at', null)
           .gte('created_at', periodStartIso)
           .lt('created_at', periodEndIso),
@@ -103,8 +86,6 @@ export default function ReportDetail() {
 
       if (imagesPrimaryResult.error) throw imagesPrimaryResult.error;
       if (imagesFallbackResult.error) throw imagesFallbackResult.error;
-      if (notesPrimaryResult.error) throw notesPrimaryResult.error;
-      if (notesFallbackResult.error) throw notesFallbackResult.error;
 
       const uniqueImages = new Map<string, FieldImage>();
       [...(imagesPrimaryResult.data ?? []), ...(imagesFallbackResult.data ?? [])].forEach((image) => {
@@ -118,7 +99,37 @@ export default function ReportDetail() {
         if (!bDate) return -1;
         return new Date(aDate).getTime() - new Date(bDate).getTime();
       });
-      setImages(sortedImages);
+
+      return sortedImages as FieldImage[]
+    },
+    enabled: !!report && !!periodStartIso && !!periodEndIso,
+  })
+
+  // Fetch field notes
+  const { data: fieldNotes = [] } = useQuery({
+    queryKey: ['reportFieldNotes', report?.learning_centre_id, periodStartIso, periodEndIso],
+    queryFn: async () => {
+      if (!report) return [];
+
+      const [notesPrimaryResult, notesFallbackResult] = await Promise.all([
+        supabase
+          .from('field_notes')
+          .select('*')
+          .eq('learning_centre_id', report.learning_centre_id)
+          .not('sent_at', 'is', null)
+          .gte('sent_at', periodStartIso)
+          .lt('sent_at', periodEndIso),
+        supabase
+          .from('field_notes')
+          .select('*')
+          .eq('learning_centre_id', report.learning_centre_id)
+          .is('sent_at', null)
+          .gte('created_at', periodStartIso)
+          .lt('created_at', periodEndIso),
+      ]);
+
+      if (notesPrimaryResult.error) throw notesPrimaryResult.error;
+      if (notesFallbackResult.error) throw notesFallbackResult.error;
 
       const uniqueNotes = new Map<string, FieldNote>();
       [...(notesPrimaryResult.data ?? []), ...(notesFallbackResult.data ?? [])].forEach((note) => {
@@ -132,33 +143,34 @@ export default function ReportDetail() {
         if (!bDate) return -1;
         return new Date(aDate).getTime() - new Date(bDate).getTime();
       });
-      setFieldNotes(sortedNotes);
 
-      // Fetch LLM analysis if available
-      if (reportData?.has_llm_analysis) {
-        const { data: analysisData, error: analysisError } = await supabase
-          .from('generated_report_llm_analysis')
-          .select('*')
-          .eq('generated_report_id', reportId)
-          .single();
+      return sortedNotes as FieldNote[]
+    },
+    enabled: !!report && !!periodStartIso && !!periodEndIso,
+  })
 
-        if (analysisError && analysisError.code !== 'PGRST116') { // PGRST116 = no rows found
-          throw analysisError;
-        }
-        setLlmAnalysis(analysisData);
+  // Fetch LLM analysis if available
+  const { data: llmAnalysis = null } = useQuery({
+    queryKey: ['reportLLMAnalysis', reportId],
+    queryFn: async () => {
+      const { data: analysisData, error: analysisError } = await supabase
+        .from('generated_report_llm_analysis')
+        .select('*')
+        .eq('generated_report_id', reportId)
+        .single();
+
+      if (analysisError && analysisError.code !== 'PGRST116') { // PGRST116 = no rows found
+        throw analysisError;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch report details');
-    } finally {
-      setLoading(false);
-    }
-  }, [reportId]);
+      return analysisData as ReportLLMAnalysis | null
+    },
+    enabled: !!reportId && !!report?.has_llm_analysis,
+  })
 
-  useEffect(() => {
-    if (reportId) {
-      fetchReportDetails();
-    }
-  }, [reportId, fetchReportDetails]);
+  const imageCount = images.length;
+  const fieldNoteCount = fieldNotes.length;
+  const loading = reportLoading
+  const error = reportError?.message || null;
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

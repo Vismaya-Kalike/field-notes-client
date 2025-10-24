@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { District } from '../types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -7,16 +7,10 @@ import { Skeleton } from './ui/skeleton';
 
 export default function DistrictsList() {
   const navigate = useNavigate();
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDistricts();
-  }, []);
-
-  async function fetchDistricts() {
-    try {
+  const { data: districts = [], isLoading: loading, error: districtError } = useQuery({
+    queryKey: ['districts'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('districts_summary')
         .select('*')
@@ -24,13 +18,11 @@ export default function DistrictsList() {
         .order('district', { ascending: true });
 
       if (error) throw error;
-      setDistricts(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch districts');
-    } finally {
-      setLoading(false);
-    }
-  }
+      return (data || []) as District[]
+    },
+  })
+
+  const error = districtError?.message || null;
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
