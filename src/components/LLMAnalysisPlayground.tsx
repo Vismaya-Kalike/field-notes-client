@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { generateLLMAnalysis } from '../lib/openai'
@@ -105,7 +105,7 @@ Write this as a professional field work assessment report that recognizes the vi
   })
 
   // Fetch field notes and images for selected month
-  const { data: fieldData } = useQuery({
+  const { data: fieldData, isLoading: fieldDataLoading } = useQuery({
     queryKey: ['fieldData', selectedCentreId, selectedMonth],
     queryFn: async () => {
       if (!selectedMonth) return { notes: [], images: [] }
@@ -145,10 +145,10 @@ Write this as a professional field work assessment report that recognizes the vi
   const fieldNotes = fieldData?.notes || []
   const images = fieldData?.images || []
 
-  // Set default prompt on mount
-  if (!prompt) {
+  // Set default prompt on mount only
+  useEffect(() => {
     setPrompt(defaultPrompt)
-  }
+  }, [])
 
   async function runAnalysis() {
     if (!selectedCentreId || !selectedMonth) {
@@ -343,59 +343,90 @@ Write this as a professional field work assessment report that recognizes the vi
               </CardContent>
             </Card>
 
-            {images.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-lg font-medium">Images Preview ({images.length})</h2>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-medium">Images Preview {!fieldDataLoading && `(${images.length})`}</h2>
+              </CardHeader>
+              <CardContent>
+                {fieldDataLoading ? (
                   <div className="grid grid-cols-2 gap-4">
-                    {images.slice(0, 6).map((img, idx) => (
-                      <div key={img.id} className="space-y-2">
-                        <img
-                          src={img.photo_url}
-                          alt={img.caption || `Image ${idx + 1}`}
-                          className="w-full h-32 object-cover rounded-md"
-                        />
-                        {img.caption && (
-                          <p className="text-xs text-gray-600">{img.caption}</p>
-                        )}
+                    {[...Array(6)].map((_, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <div className="w-full h-32 bg-gray-200 rounded-md animate-pulse" />
+                        <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse" />
                       </div>
                     ))}
                   </div>
-                  {images.length > 6 && (
-                    <p className="text-xs text-gray-500 mt-4 text-center">
-                      Showing 6 of {images.length} images
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                ) : images.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      {images.slice(0, 6).map((img, idx) => (
+                        <div key={img.id} className="space-y-2">
+                          <img
+                            src={img.photo_url}
+                            alt={img.caption || `Image ${idx + 1}`}
+                            className="w-full h-32 object-cover rounded-md"
+                          />
+                          {img.caption && (
+                            <p className="text-xs text-gray-600">{img.caption}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {images.length > 6 && (
+                      <p className="text-xs text-gray-500 mt-4 text-center">
+                        Showing 6 of {images.length} images
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 text-sm">
+                    No images available for this selection
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {fieldNotes.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-lg font-medium">Field Notes Preview ({fieldNotes.length})</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {fieldNotes.slice(0, 10).map((note) => (
-                      <div key={note.id} className="text-sm border-l-2 border-gray-300 pl-3 py-1">
-                        <p className="text-xs text-gray-500">
-                          {new Date(note.sent_at || note.created_at).toLocaleString()}
-                        </p>
-                        <p className="text-gray-700 mt-1">{note.text}</p>
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-medium">Field Notes Preview {!fieldDataLoading && `(${fieldNotes.length})`}</h2>
+              </CardHeader>
+              <CardContent>
+                {fieldDataLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, idx) => (
+                      <div key={idx} className="border-l-2 border-gray-300 pl-3 py-1">
+                        <div className="h-3 bg-gray-200 rounded w-1/4 mb-2 animate-pulse" />
+                        <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                        <div className="h-4 bg-gray-200 rounded w-5/6 mt-1 animate-pulse" />
                       </div>
                     ))}
                   </div>
-                  {fieldNotes.length > 10 && (
-                    <p className="text-xs text-gray-500 mt-4 text-center">
-                      Showing 10 of {fieldNotes.length} notes
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                ) : fieldNotes.length > 0 ? (
+                  <>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {fieldNotes.slice(0, 10).map((note) => (
+                        <div key={note.id} className="text-sm border-l-2 border-gray-300 pl-3 py-1">
+                          <p className="text-xs text-gray-500">
+                            {new Date(note.sent_at || note.created_at).toLocaleString()}
+                          </p>
+                          <p className="text-gray-700 mt-1">{note.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {fieldNotes.length > 10 && (
+                      <p className="text-xs text-gray-500 mt-4 text-center">
+                        Showing 10 of {fieldNotes.length} notes
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 text-sm">
+                    No field notes available for this selection
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

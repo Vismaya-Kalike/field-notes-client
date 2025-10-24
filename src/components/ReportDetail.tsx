@@ -62,7 +62,7 @@ export default function ReportDetail() {
   const periodEndIso = periodEnd?.toISOString() ?? '';
 
   // Fetch images
-  const { data: images = [] } = useQuery({
+  const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ['reportImages', report?.learning_centre_id, periodStartIso, periodEndIso],
     queryFn: async () => {
       if (!report) return [];
@@ -106,7 +106,7 @@ export default function ReportDetail() {
   })
 
   // Fetch field notes
-  const { data: fieldNotes = [] } = useQuery({
+  const { data: fieldNotes = [], isLoading: notesLoading } = useQuery({
     queryKey: ['reportFieldNotes', report?.learning_centre_id, periodStartIso, periodEndIso],
     queryFn: async () => {
       if (!report) return [];
@@ -150,7 +150,7 @@ export default function ReportDetail() {
   })
 
   // Fetch LLM analysis if available
-  const { data: llmAnalysis = null } = useQuery({
+  const { data: llmAnalysis = null, isLoading: analysisLoading } = useQuery({
     queryKey: ['reportLLMAnalysis', reportId],
     queryFn: async () => {
       const { data: analysisData, error: analysisError } = await supabase
@@ -246,11 +246,19 @@ export default function ReportDetail() {
           <div className="space-y-6 border-t border-gray-100 p-5">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
-                <div className="text-lg text-gray-900">{imageCount}</div>
+                {imagesLoading ? (
+                  <Skeleton className="h-7 w-8 mx-auto" />
+                ) : (
+                  <div className="text-lg text-gray-900">{imageCount}</div>
+                )}
                 <div className="text-xs uppercase tracking-wide text-gray-500">Images</div>
               </div>
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
-                <div className="text-lg text-gray-900">{fieldNoteCount}</div>
+                {notesLoading ? (
+                  <Skeleton className="h-7 w-8 mx-auto" />
+                ) : (
+                  <div className="text-lg text-gray-900">{fieldNoteCount}</div>
+                )}
                 <div className="text-xs uppercase tracking-wide text-gray-500">Field Notes</div>
               </div>
               <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-center">
@@ -283,27 +291,37 @@ export default function ReportDetail() {
       </section>
 
       {/* Images Section */}
-      {images.length > 0 && (
-        <section className="mb-6 rounded-lg bg-white shadow-sm">
-          <button
-            type="button"
-            onClick={() => toggleSection('images')}
-            aria-expanded={openSections.images}
-            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
-          >
-            <div>
-              <span className="block text-base font-medium text-gray-900">Images</span>
+      <section className="mb-6 rounded-lg bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => toggleSection('images')}
+          aria-expanded={openSections.images}
+          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+        >
+          <div>
+            <span className="block text-base font-medium text-gray-900">Images</span>
+            {imagesLoading ? (
+              <Skeleton className="h-4 w-16 mt-1" />
+            ) : (
               <span className="block text-xs text-gray-500">
                 {images.length} {images.length === 1 ? 'image' : 'images'}
               </span>
-            </div>
-            <ChevronDown
-              className={`h-4 w-4 text-gray-500 transition-transform ${openSections.images ? 'rotate-180' : ''}`}
-              aria-hidden="true"
-            />
-          </button>
-          {openSections.images && (
-            <div className="border-t border-gray-100 p-5">
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform ${openSections.images ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        {openSections.images && (
+          <div className="border-t border-gray-100 p-5">
+            {imagesLoading ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 w-full bg-gray-200 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : images.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {images.map((image) => (
                   <div key={image.id} className="overflow-hidden rounded-lg bg-gray-100">
@@ -316,13 +334,17 @@ export default function ReportDetail() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </section>
-      )}
+            ) : (
+              <div className="text-center py-8 text-gray-400 text-sm">
+                No images available for this report
+              </div>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* LLM Analysis Section */}
-      {llmAnalysis && (
+      {report.has_llm_analysis && (
         <section className="mb-6 rounded-lg bg-white shadow-sm">
           <button
             type="button"
@@ -340,40 +362,68 @@ export default function ReportDetail() {
           </button>
           {openSections.analysis && (
             <div className="border-t border-gray-100 p-5">
-              <div className="rounded-md bg-gray-50 p-5">
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">{llmAnalysis.text}</p>
-                <div className="mt-4 text-xs text-gray-500">
-                  Generated {new Date(llmAnalysis.created_at).toLocaleString()}
+              {analysisLoading ? (
+                <div className="rounded-md bg-gray-50 p-5 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-4/6 animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-3/6 animate-pulse" />
                 </div>
-              </div>
+              ) : llmAnalysis ? (
+                <div className="rounded-md bg-gray-50 p-5">
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{llmAnalysis.text}</p>
+                  <div className="mt-4 text-xs text-gray-500">
+                    Generated {new Date(llmAnalysis.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  No LLM analysis available
+                </div>
+              )}
             </div>
           )}
         </section>
       )}
 
       {/* Field Notes Section */}
-      {fieldNotes.length > 0 && (
-        <section className="mt-6 rounded-lg bg-white shadow-sm">
-          <button
-            type="button"
-            onClick={() => toggleSection('notes')}
-            aria-expanded={openSections.notes}
-            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
-          >
-            <div>
-              <span className="block text-base font-medium text-gray-900">Field Notes</span>
+      <section className="mt-6 rounded-lg bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => toggleSection('notes')}
+          aria-expanded={openSections.notes}
+          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 focus:outline-none"
+        >
+          <div>
+            <span className="block text-base font-medium text-gray-900">Field Notes</span>
+            {notesLoading ? (
+              <Skeleton className="h-4 w-16 mt-1" />
+            ) : (
               <span className="block text-xs text-gray-500">
                 {fieldNotes.length} {fieldNotes.length === 1 ? 'note' : 'notes'}
               </span>
-            </div>
-            <ChevronDown
-              className={`h-4 w-4 text-gray-500 transition-transform ${openSections.notes ? 'rotate-180' : ''}`}
-              aria-hidden="true"
-            />
-          </button>
-          {openSections.notes && (
-            <div className="space-y-4 border-t border-gray-100 p-5">
-              {fieldNotes.map((note) => {
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform ${openSections.notes ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        {openSections.notes && (
+          <div className="space-y-4 border-t border-gray-100 p-5">
+            {notesLoading ? (
+              <>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="rounded-lg border border-gray-100 bg-gray-50/70 p-4 shadow-sm">
+                    <div className="h-3 bg-gray-200 rounded w-1/4 mb-2 animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded w-5/6 mt-1 animate-pulse" />
+                  </div>
+                ))}
+              </>
+            ) : fieldNotes.length > 0 ? (
+              fieldNotes.map((note) => {
                 const displayDate = note.sent_at ?? note.created_at;
                 return (
                   <article
@@ -390,18 +440,15 @@ export default function ReportDetail() {
                     </p>
                   </article>
                 );
-              })}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* No content message */}
-      {images.length === 0 && fieldNotes.length === 0 && !llmAnalysis && (
-        <div className="rounded-lg bg-gray-50 py-12 text-center">
-          <p className="text-sm text-gray-500">No content available for this report.</p>
-        </div>
-      )}
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-400 text-sm">
+                No field notes available for this report
+              </div>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
