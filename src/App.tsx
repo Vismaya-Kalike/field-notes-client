@@ -1,10 +1,11 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import DistrictsList from './components/DistrictsList'
 import LearningCentresList from './components/LearningCentresList'
 import LearningCentreDetail from './components/LearningCentreDetail'
 import CoordinatorFieldNoteDetail from './components/CoordinatorFieldNoteDetail'
 import ChildFieldNotes from './components/ChildFieldNotes'
 import ReportDetail from './components/ReportDetail'
+import LLMAnalysisPlayground from './components/LLMAnalysisPlayground'
 
 function App() {
   return (
@@ -13,17 +14,28 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <img
-                src="/logo_with_text.png"
-                alt="Logo"
-                className="h-10 w-auto"
-              />
+              <Link to="/">
+                <img
+                  src="/logo_with_text.png"
+                  alt="Logo"
+                  className="h-10 w-auto"
+                />
+              </Link>
             </div>
+            <nav className="flex items-center gap-4">
+              <Link
+                to="/playground"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                LLM Playground
+              </Link>
+            </nav>
           </div>
         </div>
       </header>
       <Routes>
         <Route path="/" element={<DistrictsList />} />
+        <Route path="/playground" element={<LLMAnalysisPlayground />} />
         <Route path="/:state/:district" element={<LearningCentresList />} />
         <Route path="/:state/:district/centre/:centreId" element={<LearningCentreDetail />} />
         <Route

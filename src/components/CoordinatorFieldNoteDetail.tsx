@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type {
@@ -42,12 +42,7 @@ export default function CoordinatorFieldNoteDetail() {
     return `${month} ${day}${suffix} ${year}`;
   };
 
-  useEffect(() => {
-    if (!noteId) return;
-    fetchNote();
-  }, [noteId]);
-
-  async function fetchNote() {
+  const fetchNote = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('coordinator_field_notes')
@@ -64,13 +59,13 @@ export default function CoordinatorFieldNoteDetail() {
         return;
       }
 
-      const coordinatorValue = (data as any).coordinator;
+      const coordinatorValue = data.coordinator as unknown;
       const coordinator =
         Array.isArray(coordinatorValue) && coordinatorValue.length > 0
           ? coordinatorValue[0]
           : coordinatorValue ?? null;
 
-      const centreValue = (data as any).learning_centre;
+      const centreValue = data.learning_centre as unknown;
       const learningCentre =
         Array.isArray(centreValue) && centreValue.length > 0 ? centreValue[0] : centreValue ?? null;
 
@@ -101,7 +96,12 @@ export default function CoordinatorFieldNoteDetail() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [noteId, centreId])
+
+  useEffect(() => {
+    if (!noteId) return;
+    fetchNote();
+  }, [noteId, fetchNote]);
 
   const backToCentre = () =>
     navigate(

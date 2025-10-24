@@ -55,23 +55,9 @@ export default function ChildFieldNotes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!childId) return;
-    const fetchAll = async () => {
-      try {
-        await Promise.all([fetchChild(), fetchNotes()]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch child notes');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAll();
-  }, [childId]);
-
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-async function fetchChild() {
+const fetchChild = useCallback(async () => {
     const { data, error } = await supabase
       .from('children')
       .select(
@@ -81,7 +67,7 @@ async function fetchChild() {
       .single();
 
     if (error) throw error;
-    const learningCentreValue = (data as any).learning_centre;
+    const learningCentreValue = data.learning_centre as unknown;
     const learningCentre =
       Array.isArray(learningCentreValue) && learningCentreValue.length > 0
         ? learningCentreValue[0]
@@ -104,9 +90,9 @@ async function fetchChild() {
           }
         : null,
     });
-  }
+  }, [childId, centreId])
 
-  async function fetchNotes() {
+  const fetchNotes = useCallback(async () => {
     const { data, error } = await supabase
       .from('child_field_note_links')
       .select(`
@@ -133,30 +119,46 @@ async function fetchChild() {
     const facilitator: FacilitatorNote[] = [];
     const coordinator: CoordinatorNote[] = [];
 
-    (data ?? []).forEach((link: any) => {
-      if (link.field_note) {
+    (data ?? []).forEach((link) => {
+      const typedLink = link as unknown as {
+        field_note?: {
+          id: string
+          text: string
+          created_at: string
+          sent_at: string
+          facilitator?: { name: string; contact_number: string; email: string } | null
+        } | null
+        coordinator_field_note?: {
+          id: string
+          note_text: string
+          created_at: string
+          noted_at: string
+          coordinator?: { name: string } | null
+        } | null
+      }
+      if (typedLink.field_note) {
         facilitator.push({
-          id: link.field_note.id,
-          text: link.field_note.text,
-          created_at: link.field_note.created_at,
-          sent_at: link.field_note.sent_at,
-          facilitator: link.field_note.facilitator
+          id: typedLink.field_note.id,
+          text: typedLink.field_note.text,
+          created_at: typedLink.field_note.created_at,
+          sent_at: typedLink.field_note.sent_at,
+          facilitator: typedLink.field_note.facilitator
             ? {
-                name: link.field_note.facilitator.name ?? null,
-                contact_number: link.field_note.facilitator.contact_number ?? null,
-                email: link.field_note.facilitator.email ?? null,
+                name: typedLink.field_note.facilitator.name ?? null,
+                contact_number: typedLink.field_note.facilitator.contact_number ?? null,
+                email: typedLink.field_note.facilitator.email ?? null,
               }
             : null,
         });
       }
-      if (link.coordinator_field_note) {
+      if (typedLink.coordinator_field_note) {
         coordinator.push({
-          id: link.coordinator_field_note.id,
-          note_text: link.coordinator_field_note.note_text,
-          created_at: link.coordinator_field_note.created_at,
-          noted_at: link.coordinator_field_note.noted_at,
-          coordinator: link.coordinator_field_note.coordinator
-            ? { name: link.coordinator_field_note.coordinator.name ?? null }
+          id: typedLink.coordinator_field_note.id,
+          note_text: typedLink.coordinator_field_note.note_text,
+          created_at: typedLink.coordinator_field_note.created_at,
+          noted_at: typedLink.coordinator_field_note.noted_at,
+          coordinator: typedLink.coordinator_field_note.coordinator
+            ? { name: typedLink.coordinator_field_note.coordinator.name ?? null }
             : null,
         });
       }
@@ -176,7 +178,21 @@ async function fetchChild() {
 
     setFacilitatorNotes(facilitator);
     setCoordinatorNotes(coordinator);
-  }
+  }, [childId])
+
+  useEffect(() => {
+    if (!childId) return;
+    const fetchAll = async () => {
+      try {
+        await Promise.all([fetchChild(), fetchNotes()]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch child notes');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, [childId, fetchChild, fetchNotes]);
 
   const aliases = useMemo(() => child?.alias ?? [], [child]);
   const aliasLower = useMemo(() => aliases.map((alias) => alias.toLowerCase()), [aliases]);
