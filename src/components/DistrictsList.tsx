@@ -51,7 +51,7 @@ export default function DistrictsList() {
 
   if (error) return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center text-red-600">Error: {error}</div>
+      <div className="text-center text-destructive">Error: {error}</div>
     </div>
   );
 
@@ -66,20 +66,20 @@ export default function DistrictsList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Learning Centers</h1>
+      <h1 className="text-2xl font-semibold text-foreground mb-6">Learning Centers</h1>
 
       {Object.entries(groupedByState).map(([state, stateDistricts]) => (
         <div key={state} className="mb-8">
-          <h2 className="text-lg font-medium mb-3 text-gray-800">{state}</h2>
+          <h2 className="text-lg font-medium mb-3 text-foreground">{state}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {stateDistricts.map((district) => (
               <Card
                 key={`${district.state}-${district.district}`}
                 onClick={() => navigate(`/${encodeURIComponent(district.state)}/${encodeURIComponent(district.district)}`)}
-                className="cursor-pointer transition-colors hover:bg-gray-50 border-gray-200"
+                className="cursor-pointer transition-colors hover:bg-accent"
               >
                 <CardHeader>
-                  <CardTitle className="text-base font-medium text-gray-900">{district.district}</CardTitle>
+                  <CardTitle className="text-base font-medium">{district.district}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription>
