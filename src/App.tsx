@@ -6,6 +6,10 @@ import CoordinatorFieldNoteDetail from './components/CoordinatorFieldNoteDetail'
 import ChildFieldNotes from './components/ChildFieldNotes'
 import ReportDetail from './components/ReportDetail'
 import LLMAnalysisPlayground from './components/LLMAnalysisPlayground'
+import Activities from './components/Activities'
+import ActivityDetail from './components/ActivityDetail'
+import BlogList from './components/BlogList'
+import BlogDetail from './components/BlogDetail'
 import { Sidebar } from './components/Sidebar'
 
 // Page imports
@@ -44,8 +48,6 @@ import {
   // Resources
   ResourcesPage,
   LearningMaterialPage,
-  ActivitiesPage,
-  BookOfWonderPage,
   RandomizePage,
   WorkshopsPage,
   WorkshopActivitiesPage,
@@ -70,7 +72,6 @@ import {
   ApplyScholarshipPage,
   DonatePage,
   ContactPage,
-  BlogPage,
   GovernancePage,
   ToolsPage,
   PrivacyPolicyPage,
@@ -129,9 +130,9 @@ function App() {
           {/* Resources */}
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/resources/learning-material" element={<LearningMaterialPage />} />
-          <Route path="/resources/activities" element={<ActivitiesPage />} />
-          <Route path="/resources/activities/book-of-wonder" element={<BookOfWonderPage />} />
+          <Route path="/resources/activities" element={<Activities />} />
           <Route path="/resources/activities/randomize" element={<RandomizePage />} />
+          <Route path="/resources/activities/:activityId" element={<ActivityDetail />} />
           <Route path="/resources/workshops" element={<WorkshopsPage />} />
           <Route path="/resources/workshops/activities" element={<WorkshopActivitiesPage />} />
           <Route path="/resources/workshops/resource-people" element={<ResourcePeoplePage />} />
@@ -160,7 +161,8 @@ function App() {
           {/* Other */}
           <Route path="/donate" element={<DonatePage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/governance" element={<GovernancePage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

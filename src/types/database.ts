@@ -157,3 +157,39 @@ export interface ComprehensiveReport {
   actual_messages_count: number;
   has_actual_llm_analysis: boolean;
 }
+
+export interface Activity {
+  id: string;
+  name: string;
+  materials_required?: string;
+  objective?: string;
+  how_to_play?: string;
+  outcome?: string;
+  facilitator_constraint: number;
+  space_constraint: number;
+  repeat_constraint: number;
+  material_constraint: number;
+  knowledge_constraint: number;
+  exposure_to_new_topics: number;
+  category?: string;
+  tags?: string[];
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  cover_image_url?: string;
+  author_name?: string;
+  author_id?: string;
+  is_published: boolean;
+  published_at?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+}

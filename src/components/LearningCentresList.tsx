@@ -6,6 +6,7 @@ import type { LearningCentre } from '../types/database';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+import { PageTitle } from './PageTitle';
 
 export default function LearningCentresList() {
   const { state: stateParam, district: districtParam } = useParams<{ state: string; district: string }>();
@@ -79,6 +80,7 @@ export default function LearningCentresList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle title={`Learning Centres in ${district}`} />
       <div className="mb-6">
         <Button
           onClick={() => navigate('/')}
@@ -87,7 +89,7 @@ export default function LearningCentresList() {
         >
           ← Back Home
         </Button>
-        
+
         <h1 className="text-xl font-medium text-gray-900">
           Learning Centres in {district}, {state}
         </h1>

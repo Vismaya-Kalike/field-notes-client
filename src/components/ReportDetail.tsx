@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import type { GeneratedReport, FieldImage, FieldNote } from '../types/database';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+import { PageTitle } from './PageTitle';
 
 interface ReportLLMAnalysis {
   id: string;
@@ -213,6 +214,7 @@ export default function ReportDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle title={`${report.month_year_display} Report`} />
       <div className="mb-8">
         <Button
           onClick={() =>

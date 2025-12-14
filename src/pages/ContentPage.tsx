@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { PageTitle } from '@/components/PageTitle'
 
 export interface PageContent {
   title: string
@@ -17,6 +18,7 @@ interface ContentPageProps {
 export function ContentPage({ content, className }: ContentPageProps) {
   return (
     <div className={cn("max-w-4xl mx-auto px-6 py-12", className)}>
+      <PageTitle title={content.title} />
       <header className="mb-12">
         <h1 className="text-4xl font-bold text-foreground mb-4">
           {content.title}

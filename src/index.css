@@ -9,6 +9,16 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* ViKa Brand Colors */
+  --color-vika-turquoise: #3DD6D0;
+  --color-vika-teal: #1BAB9B;
+  --color-vika-violet: #6677F5;
+  --color-vika-coral: #F7A9A8;
+  --color-vika-yellow: #D4D017;
+  --color-vika-amber: #F59E0B;
+  --color-vika-sky: #0EA5E9;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

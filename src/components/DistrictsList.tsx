@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { District } from '../types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
+import { PageTitle } from './PageTitle';
 
 export default function DistrictsList() {
   const navigate = useNavigate();
@@ -66,6 +67,7 @@ export default function DistrictsList() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle title="Learning Centers" />
       <h1 className="text-2xl font-semibold text-foreground mb-6">Learning Centers</h1>
 
       {Object.entries(groupedByState).map(([state, stateDistricts]) => (

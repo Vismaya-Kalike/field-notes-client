@@ -73,7 +73,6 @@ import {
   applyScholarshipContent,
   donateContent,
   contactContent,
-  blogContent,
   governanceContent,
   toolsContent,
   privacyPolicyContent,
@@ -144,7 +143,6 @@ export const ScholarshipPage = () => <ContentPage content={scholarshipContent} /
 export const ApplyScholarshipPage = () => <ContentPage content={applyScholarshipContent} />
 export const DonatePage = () => <ContentPage content={donateContent} />
 export const ContactPage = () => <ContentPage content={contactContent} />
-export const BlogPage = () => <ContentPage content={blogContent} />
 export const GovernancePage = () => <ContentPage content={governanceContent} />
 export const ToolsPage = () => <ContentPage content={toolsContent} />
 export const PrivacyPolicyPage = () => <ContentPage content={privacyPolicyContent} />

@@ -13,6 +13,7 @@ import type {
 } from '../types/database';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+import { PageTitle } from './PageTitle';
 
 type FacilitatorNote = Pick<FieldNote, 'id' | 'text' | 'created_at' | 'sent_at'> & {
   facilitator?: Pick<Facilitator, 'name' | 'contact_number' | 'email'> | null;
@@ -263,6 +264,7 @@ const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle title={`${childLabel} - Field Notes`} />
       <Button variant="link" onClick={goBack} className="mb-4 gap-1 text-gray-500 hover:text-gray-900">
         ← Back to Learning Centre
       </Button>

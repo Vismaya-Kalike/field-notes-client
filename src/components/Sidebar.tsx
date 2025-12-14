@@ -72,14 +72,7 @@ const navigation: NavItem[] = [
     href: '/resources',
     children: [
       { title: 'Learning Material', href: '/resources/learning-material' },
-      {
-        title: 'Activities',
-        href: '/resources/activities',
-        children: [
-          { title: 'Book of Wonder', href: '/resources/activities/book-of-wonder' },
-          { title: 'Randomize', href: '/resources/activities/randomize' },
-        ]
-      },
+      { title: 'Activities', href: '/resources/activities' },
       {
         title: 'Facilitator Workshops',
         href: '/resources/workshops',
@@ -125,7 +118,7 @@ const navigation: NavItem[] = [
     ]
   },
   {
-    title: 'Writing / Blog',
+    title: 'Blog',
     href: '/blog'
   },
   {
@@ -195,8 +188,7 @@ function NavGroup({ item, depth = 0 }: { item: NavItem; depth?: number }) {
           "block px-3 py-1.5 text-sm rounded-md transition-colors",
           isActive
             ? "bg-accent text-accent-foreground font-medium"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent",
-          depth > 0 && "ml-4"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent"
         )}
       >
         {item.title}
