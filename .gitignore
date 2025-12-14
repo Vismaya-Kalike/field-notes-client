@@ -30,3 +30,7 @@ supabase/seed.sql
 supabase/seed_additional.sql
 supabase/seed_district_changes.sql
 supabase/seed.txt
+
+# Scripts and seed folders
+scripts/
+supabase/seeds/
