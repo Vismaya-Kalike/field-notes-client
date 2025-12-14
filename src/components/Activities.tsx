@@ -8,7 +8,8 @@ import { Skeleton } from './ui/skeleton'
 import { Input } from './ui/input'
 import { PageTitle } from './PageTitle'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { Book, Users, MapPin, RefreshCw, Package, Brain, Sparkles, Search, Filter, X } from 'lucide-react'
+import { Book, Users, MapPin, RefreshCw, Package, Brain, Sparkles, Search, Filter, X, Shuffle } from 'lucide-react'
+import { Button } from './ui/button'
 
 const CONSTRAINT_ICONS: Record<string, React.ElementType> = {
   facilitator: Users,
@@ -324,9 +325,26 @@ export default function Activities() {
 
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Book className="h-8 w-8 text-muted-foreground" />
-          <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Book className="h-8 w-8 text-muted-foreground" />
+            <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const pool = filteredActivities.length > 0 ? filteredActivities : activities
+              if (pool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * pool.length)
+                navigate(`/resources/activities/${pool[randomIndex].id}`)
+              }
+            }}
+            disabled={activities.length === 0}
+            className="gap-2"
+          >
+            <Shuffle className="h-4 w-4" />
+            Random
+          </Button>
         </div>
         <p className="text-lg text-muted-foreground">
           A collection of {activities.length} activities for joyful learning in self-directed spaces
