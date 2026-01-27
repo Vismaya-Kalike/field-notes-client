@@ -34,3 +34,7 @@ supabase/seed.txt
 # Scripts and seed folders
 scripts/
 supabase/seeds/
+
+.next
+.sanity
+tsconfig.tsbuildinfo

@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "about": "About ViKa",
+    "aboutVika": "About ViKa",
+    "purpose": "Purpose of Education",
+    "principles": "Principles",
+    "agency": "Agency",
+    "vikaAndSchool": "ViKa and School",
+    "learningCenters": "Learning Centers",
+    "gettingStarted": "Getting Started",
+    "progress": "Understanding Progress",
+    "resources": "Resources",
+    "activities": "Activities",
+    "blog": "Blog",
+    "partners": "Partners",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "readMore": "Read more",
+    "backToHome": "Back to Home",
+    "notFound": "Page not found",
+    "serverError": "Something went wrong"
+  },
+  "home": {
+    "title": "ViKa Learning Centers",
+    "subtitle": "Select a state to view learning centers",
+    "selectState": "Select State",
+    "selectDistrict": "Select District"
+  }
+}

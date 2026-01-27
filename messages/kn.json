@@ -1,0 +1,33 @@
+{
+  "navigation": {
+    "about": "ವಿಕಾ ಬಗ್ಗೆ",
+    "aboutVika": "ವಿಕಾ ಬಗ್ಗೆ",
+    "purpose": "ಶಿಕ್ಷಣದ ಉದ್ದೇಶ",
+    "principles": "ತತ್ವಗಳು",
+    "agency": "ಸ್ವಾತಂತ್ರ್ಯ",
+    "vikaAndSchool": "ವಿಕಾ ಮತ್ತು ಶಾಲೆ",
+    "learningCenters": "ಕಲಿಕಾ ಕೇಂದ್ರಗಳು",
+    "gettingStarted": "ಪ್ರಾರಂಭಿಸುವುದು",
+    "progress": "ಪ್ರಗತಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದು",
+    "resources": "ಸಂಪನ್ಮೂಲಗಳು",
+    "activities": "ಚಟುವಟಿಕೆಗಳು",
+    "blog": "ಬ್ಲಾಗ್",
+    "partners": "ಪಾಲುದಾರರು",
+    "privacyPolicy": "ಗೌಪ್ಯತಾ ನೀತಿ",
+    "termsOfService": "ಸೇವಾ ನಿಯಮಗಳು"
+  },
+  "common": {
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "error": "ದೋಷ",
+    "readMore": "ಇನ್ನಷ್ಟು ಓದಿ",
+    "backToHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+    "notFound": "ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
+    "serverError": "ಏನೋ ತಪ್ಪಾಗಿದೆ"
+  },
+  "home": {
+    "title": "ವಿಕಾ ಕಲಿಕಾ ಕೇಂದ್ರಗಳು",
+    "subtitle": "ಕಲಿಕಾ ಕೇಂದ್ರಗಳನ್ನು ವೀಕ್ಷಿಸಲು ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "selectState": "ರಾಜ್ಯ ಆಯ್ಕೆಮಾಡಿ",
+    "selectDistrict": "ಜಿಲ್ಲೆ ಆಯ್ಕೆಮಾಡಿ"
+  }
+}
