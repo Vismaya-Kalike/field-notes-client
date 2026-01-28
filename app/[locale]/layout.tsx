@@ -24,7 +24,7 @@ export default async function LocaleLayout({
           <QueryProvider>
             <div className="min-h-screen bg-background flex">
               <Sidebar navigation={navigation} />
-              <main className="flex-1 min-w-0 overflow-y-auto">
+              <main className="flex-1 min-w-0">
                 {children}
               </main>
             </div>

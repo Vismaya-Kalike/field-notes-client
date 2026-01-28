@@ -1,6 +1,7 @@
 export const pageBySlugQuery = `
   *[_type == "localizedPage" && slug.current == $slug][0] {
     _id,
+    _updatedAt,
     slug,
     order,
     parentPage->{

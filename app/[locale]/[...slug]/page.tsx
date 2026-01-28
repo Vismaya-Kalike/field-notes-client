@@ -27,8 +27,8 @@ export default async function DynamicPage({ params }: PageProps) {
   if (!content || !content.title) {
     notFound()
   }
-  
-  return <ContentPage content={content} />
+
+  return <ContentPage content={content} updatedAt={page._updatedAt} />
 }
 
 export async function generateMetadata({ params }: PageProps) {
