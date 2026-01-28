@@ -1,5 +1,5 @@
 import { PortableText } from '@portabletext/react'
-import type { PortableTextBlock } from '@portabletext/types'
+import type { PortableTextBlock, PortableTextSpan } from '@portabletext/types'
 import Image from 'next/image'
 import { urlFor } from '@/lib/sanity/image'
 import { TableOfContents } from './TableOfContents'
@@ -52,7 +52,8 @@ function extractHeadings(sections: Section[]): TocItem[] {
         Array.isArray(block.children)
       ) {
         const text = block.children
-          .map((child: { text: string }) => child.text)
+          .filter((child): child is PortableTextSpan => 'text' in child && typeof child.text === 'string')
+          .map((child) => child.text)
           .join('') || ''
 
         if (text) {
@@ -107,7 +108,10 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                 components={{
                   block: {
                     h2: ({ children, value }) => {
-                      const text = value?.children?.map((child: { text: string }) => child.text).join('') || '';
+                      const text = value?.children
+                        ?.filter((child): child is PortableTextSpan => 'text' in child && typeof child.text === 'string')
+                        .map((child) => child.text)
+                        .join('') || '';
                       const id = text ? `h2-${slugify(text)}` : undefined;
                       return (
                         <h2 id={id} className="text-xl font-semibold mt-8 mb-4 scroll-mt-24">
@@ -116,7 +120,10 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                       );
                     },
                     h3: ({ children, value }) => {
-                      const text = value?.children?.map((child: { text: string }) => child.text).join('') || ''
+                      const text = value?.children
+                        ?.filter((child): child is PortableTextSpan => 'text' in child && typeof child.text === 'string')
+                        .map((child) => child.text)
+                        .join('') || ''
                       const id = text ? `h3-${slugify(text)}` : undefined
                       return (
                         <h3 id={id} className="text-lg font-semibold mt-6 mb-3 scroll-mt-24">
@@ -125,7 +132,10 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                       )
                     },
                     h4: ({ children, value }) => {
-                      const text = value?.children?.map((child: { text: string }) => child.text).join('') || ''
+                      const text = value?.children
+                        ?.filter((child): child is PortableTextSpan => 'text' in child && typeof child.text === 'string')
+                        .map((child) => child.text)
+                        .join('') || ''
                       const id = text ? `h4-${slugify(text)}` : undefined
                       return (
                         <h4 id={id} className="text-base font-semibold mt-4 mb-2 scroll-mt-24">
