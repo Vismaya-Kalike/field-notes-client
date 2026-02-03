@@ -82,7 +82,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   return (
     <nav className="hidden lg:block fixed right-4 top-24 w-64 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <h3 className="text-sm font-semibold mb-4 text-foreground">On this page</h3>
+      <h3 className="text-sm mb-4 text-foreground">On this page</h3>
       <ul className="space-y-2 text-sm">
         {items.map((item) => {
           const isActive = item.id === activeId
@@ -104,7 +104,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
                 aria-current={isActive ? 'location' : undefined}
                 className={`block py-1 transition-all ${
                   isActive
-                    ? 'text-foreground font-medium opacity-100'
+                    ? 'text-foreground opacity-100'
                     : 'text-foreground opacity-40 hover:opacity-70'
                 }`}
               >

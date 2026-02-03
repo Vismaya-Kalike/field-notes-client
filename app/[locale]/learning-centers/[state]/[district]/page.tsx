@@ -72,7 +72,7 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <PageTitle title={`${district}, ${state} - Learning Centers`} />
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">{district}</h1>
+        <h1 className="text-2xl text-foreground">{district}</h1>
         <p className="text-muted-foreground">{state}</p>
       </div>
 
@@ -93,7 +93,7 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
               <CardContent className="space-y-3">
                 {centre.facilitators && centre.facilitators.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                    <p className="text-sm text-muted-foreground mb-1">
                       Facilitator{centre.facilitators.length > 1 ? 's' : ''}
                     </p>
                     <div className="space-y-1">
@@ -108,7 +108,7 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
 
                 {centre.partner_organisations && centre.partner_organisations.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                    <p className="text-sm text-muted-foreground mb-1">
                       Partner Organisation{centre.partner_organisations.length > 1 ? 's' : ''}
                     </p>
                     <div className="space-y-1">

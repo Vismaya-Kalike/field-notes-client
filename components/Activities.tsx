@@ -146,7 +146,7 @@ function ActivityCard({ activity, onClick }: { activity: Activity; onClick: () =
       className="cursor-pointer transition-all hover:bg-accent hover:shadow-md"
     >
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium line-clamp-1">
+        <CardTitle className="text-base line-clamp-1">
           {activity.name}
         </CardTitle>
         {activity.category && (
@@ -322,7 +322,7 @@ export default function Activities() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Book className="h-8 w-8 text-muted-foreground" />
-          <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+          <h1 className="text-3xl text-foreground">Activities</h1>
         </div>
         <p className="text-lg text-muted-foreground">
           A collection of {activities.length} activities for joyful learning in self-directed spaces
@@ -339,7 +339,7 @@ export default function Activities() {
       <div className="mb-6">
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
         >
           <Filter className="h-4 w-4" />
           <span>Filter by constraints</span>

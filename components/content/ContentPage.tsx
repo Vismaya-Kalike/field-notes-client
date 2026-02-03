@@ -78,7 +78,7 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
       <div className="flex gap-12 items-start">
         <div className="flex-1 max-w-4xl min-w-0">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">{content.title}</h1>
+            <h1 className="text-4xl mb-4">{content.title}</h1>
             {content.subtitle && (
               <p className="text-xl text-muted-foreground mb-4">{content.subtitle}</p>
             )}
@@ -98,7 +98,7 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
               {section.heading && (
                 <h2
                   id={`section-${idx}-${slugify(section.heading)}`}
-                  className="text-2xl font-semibold mb-4 scroll-mt-24"
+                  className="text-2xl mb-4 scroll-mt-24"
                 >
                   {section.heading}
                 </h2>
@@ -114,7 +114,7 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                         .join('') || '';
                       const id = text ? `h2-${slugify(text)}` : undefined;
                       return (
-                        <h2 id={id} className="text-xl font-semibold mt-8 mb-4 scroll-mt-24">
+                        <h2 id={id} className="text-xl mt-8 mb-4 scroll-mt-24">
                           {children}
                         </h2>
                       );
@@ -126,7 +126,7 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                         .join('') || ''
                       const id = text ? `h3-${slugify(text)}` : undefined
                       return (
-                        <h3 id={id} className="text-lg font-semibold mt-6 mb-3 scroll-mt-24">
+                        <h3 id={id} className="text-lg mt-6 mb-3 scroll-mt-24">
                           {children}
                         </h3>
                       )
@@ -138,7 +138,7 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                         .join('') || ''
                       const id = text ? `h4-${slugify(text)}` : undefined
                       return (
-                        <h4 id={id} className="text-base font-semibold mt-4 mb-2 scroll-mt-24">
+                        <h4 id={id} className="text-base mt-4 mb-2 scroll-mt-24">
                           {children}
                         </h4>
                       )
@@ -167,14 +167,14 @@ export function ContentPage({ content, updatedAt }: ContentPageProps) {
                       href={value?.href}
                       target={target}
                       rel={rel}
-                      className="text-primary underline hover:text-primary/80"
+                      className="underline underline-offset-4 hover:opacity-70 transition-opacity"
                     >
                       {children}
                     </a>
                   )
                 },
                 strong: ({ children }) => (
-                  <strong className="font-semibold">{children}</strong>
+                  <strong>{children}</strong>
                 ),
                 em: ({ children }) => <em className="italic">{children}</em>,
                 code: ({ children }) => (

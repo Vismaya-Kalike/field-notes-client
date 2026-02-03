@@ -7,6 +7,7 @@ A quick reference for maintaining consistent styling across the application.
 ## Colors
 
 ### ViKa Brand Palette
+
 ```
 turquoise: #3DD6D0
 teal:      #1BAB9B  (primary accent)
@@ -18,11 +19,13 @@ indigo:    #4F46E5
 ```
 
 ### Usage
+
 - **Tags/Badges**: `bg-vika-teal text-white` - solid teal background with white text
 - **Icons**: `text-muted-foreground` - keep icons subtle, not colored
 - **Text**: Use theme colors (`text-foreground`, `text-muted-foreground`) for readability
 
 ### What NOT to do
+
 - Don't use multiple ViKa colors on the same page
 - Don't use colored text for body content
 - Don't use colored borders or accents excessively
@@ -32,11 +35,13 @@ indigo:    #4F46E5
 ## Layout
 
 ### Page Container
+
 ```tsx
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 ```
 
 ### Content Width
+
 - Full width lists/grids: No additional constraint
 - Reading content (blogs, articles): `max-w-3xl`
 
@@ -45,23 +50,24 @@ indigo:    #4F46E5
 ## Typography
 
 ### Page Headers
+
 ```tsx
 <div className="mb-8">
   <div className="flex items-center gap-3 mb-2">
     <Icon className="h-8 w-8 text-muted-foreground" />
-    <h1 className="text-3xl font-bold text-foreground">Title</h1>
+    <h1 className="text-3xl text-foreground">Title</h1>
   </div>
-  <p className="text-lg text-muted-foreground">
-    Subtitle/description
-  </p>
+  <p className="text-lg text-muted-foreground">Subtitle/description</p>
 </div>
 ```
 
 ### Section Headings
-- h2: `text-2xl font-semibold text-foreground`
-- h3: `text-xl font-semibold text-foreground`
+
+- h2: `text-2xl text-foreground`
+- h3: `text-xl text-foreground`
 
 ### Body Text
+
 - Default: `text-base text-foreground leading-relaxed`
 - Muted: `text-sm text-muted-foreground`
 
@@ -70,10 +76,11 @@ indigo:    #4F46E5
 ## Components
 
 ### Cards
+
 ```tsx
 <Card className="cursor-pointer transition-all hover:shadow-md hover:bg-accent">
   <CardHeader>
-    <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+    <CardTitle className="text-lg">{title}</CardTitle>
     <CardDescription>{description}</CardDescription>
   </CardHeader>
   <CardContent>{content}</CardContent>
@@ -81,6 +88,7 @@ indigo:    #4F46E5
 ```
 
 ### Tags/Badges
+
 ```tsx
 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-vika-teal text-white">
   {tag}
@@ -88,6 +96,7 @@ indigo:    #4F46E5
 ```
 
 ### Meta Information (author, date)
+
 ```tsx
 <div className="flex items-center gap-4 text-sm text-muted-foreground">
   <span className="flex items-center gap-1">
@@ -102,6 +111,7 @@ indigo:    #4F46E5
 ```
 
 ### Back Links
+
 ```tsx
 <Link
   to="/path"
@@ -117,7 +127,9 @@ indigo:    #4F46E5
 ## Loading States
 
 ### Skeletons
+
 Use `<Skeleton />` components matching the layout structure:
+
 ```tsx
 <Skeleton className="h-10 w-32 mb-2" />  // Title
 <Skeleton className="h-6 w-64 mb-8" />   // Subtitle
@@ -128,13 +140,13 @@ Use `<Skeleton />` components matching the layout structure:
 
 ## Spacing Reference
 
-| Use Case | Class |
-|----------|-------|
-| Page padding | `py-8` |
-| Section gap | `mb-8` |
-| Paragraph gap | `mb-5` |
-| List item gap | `space-y-2` |
-| Card gap in grid | `gap-4` |
+| Use Case           | Class              |
+| ------------------ | ------------------ |
+| Page padding       | `py-8`             |
+| Section gap        | `mb-8`             |
+| Paragraph gap      | `mb-5`             |
+| List item gap      | `space-y-2`        |
+| Card gap in grid   | `gap-4`            |
 | Inline element gap | `gap-1` to `gap-2` |
 
 ---

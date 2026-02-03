@@ -49,10 +49,10 @@ function ConstraintIndicator({
         ? `${bgClass} border-border`
         : 'bg-transparent border-dashed border-border'
     }`}>
-      <Icon className={`h-5 w-5 flex-shrink-0 ${isPositive ? textClass : 'text-muted-foreground/50'}`} />
+      <Icon className={`h-5 w-5 shrink-0 ${isPositive ? textClass : 'text-muted-foreground/50'}`} />
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-sm ${isPositive ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+        <p className={`text-sm ${isPositive ? 'text-foreground' : 'text-muted-foreground'}`}>
           {isPositive ? positiveText : negativeText}
         </p>
       </div>
@@ -132,7 +132,7 @@ export default function ActivityDetail() {
 
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">{activity.name}</h1>
+          <h1 className="text-3xl text-foreground mb-2">{activity.name}</h1>
           {activity.category && (
             <span className="inline-block px-3 py-1 rounded-full text-sm bg-muted text-muted-foreground">
               {activity.category}
@@ -208,7 +208,7 @@ export default function ActivityDetail() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <Package className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Materials Required</h2>
+              <h2 className="text-lg text-foreground">Materials Required</h2>
             </div>
             <p className="text-muted-foreground pl-7">{activity.materials_required}</p>
           </section>
@@ -218,7 +218,7 @@ export default function ActivityDetail() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <Target className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Objective</h2>
+              <h2 className="text-lg text-foreground">Objective</h2>
             </div>
             <p className="text-muted-foreground pl-7">{activity.objective}</p>
           </section>
@@ -228,7 +228,7 @@ export default function ActivityDetail() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <PlayCircle className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">How to Play</h2>
+              <h2 className="text-lg text-foreground">How to Play</h2>
             </div>
             <div className="pl-7 text-muted-foreground whitespace-pre-line">
               {activity.how_to_play}
@@ -240,7 +240,7 @@ export default function ActivityDetail() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Learning Outcome</h2>
+              <h2 className="text-lg text-foreground">Learning Outcome</h2>
             </div>
             <p className="text-muted-foreground pl-7">{activity.outcome}</p>
           </section>
@@ -250,7 +250,7 @@ export default function ActivityDetail() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Tags</h2>
+              <h2 className="text-lg text-foreground">Tags</h2>
             </div>
             <div className="flex flex-wrap gap-2 pl-7">
               {activity.tags.map((tag, index) => (

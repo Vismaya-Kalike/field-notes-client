@@ -10,14 +10,17 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* Fonts */
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+
   /* ViKa Brand Colors */
-  --color-vika-turquoise: #3DD6D0;
-  --color-vika-teal: #1BAB9B;
-  --color-vika-violet: #6677F5;
-  --color-vika-coral: #F7A9A8;
-  --color-vika-yellow: #D4D017;
-  --color-vika-amber: #F59E0B;
-  --color-vika-sky: #0EA5E9;
+  --color-vika-turquoise: #1eddd2;
+  --color-vika-teal: #05ada3;
+  --color-vika-violet: #6677f5;
+  --color-vika-coral: #fc9797;
+  --color-vika-yellow: #d7df23;
+  --color-vika-amber: #f59e0b;
+  --color-vika-sky: #5781ff;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -127,5 +130,35 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-vika-coral);
+    font-weight: 300;
+  }
+  h1 {
+    font-weight: 300;
+  }
+  p {
+    font-weight: 300;
+  }
+  a {
+    color: var(--color-vika-teal);
+    /* underline decoration-1 underline-offset-4 hover:text-foreground/80 */
+  }
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6 {
+    color: var(--color-vika-turquoise);
+  }
+  .dark a {
+    color: var(--color-vika-coral);
   }
 }
