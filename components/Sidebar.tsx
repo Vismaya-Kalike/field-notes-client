@@ -192,10 +192,10 @@ export function Sidebar({ className, navigation }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-4 py-3 border-t border-sidebar-border space-y-3">
+        <div className="shrink-0 px-4 py-3 border-t border-sidebar-border space-y-3">
           <LanguageSwitcher />
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">v2.0.0</p>
+            <p className="text-xs text-muted-foreground">v1.0.0</p>
             <DarkModeToggle />
           </div>
         </div>
