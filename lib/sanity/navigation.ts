@@ -100,6 +100,11 @@ export async function getNavigation(locale: Locale): Promise<NavItem[]> {
         },
       ],
     },
+    {
+      title: 'Donate',
+      href: '/donate',
+      order: 1002,
+    },
   ]
 
 
