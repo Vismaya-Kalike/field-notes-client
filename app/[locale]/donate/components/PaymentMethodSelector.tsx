@@ -12,14 +12,9 @@ export function PaymentMethodSelector({ country, value, onValueChange }: Payment
   const paymentMethods: { value: PaymentMethod; label: string; description?: string }[] = [
     {
       value: 'card',
-      label: 'Credit/Debit Card',
-      description: 'Secure online payment'
+      label: country === 'india' ? 'Card / UPI' : 'Credit/Debit Card',
+      description: country === 'india' ? 'Pay using card or UPI' : 'Secure online payment'
     },
-    ...(country === 'india' ? [{
-      value: 'upi' as PaymentMethod,
-      label: 'UPI',
-      description: 'Pay using UPI apps'
-    }] : []),
     {
       value: 'bank_transfer',
       label: 'Bank Transfer',

@@ -84,7 +84,7 @@ export function DonorInfoForm({ country, onSubmit, onBack }: DonorInfoFormProps)
               {...register('panNumber')}
               aria-invalid={!!errors.panNumber}
               className="uppercase"
-              maxLength={10}
+              maxLength={15}
             />
             {errors.panNumber && (
               <p className="text-sm text-destructive">{errors.panNumber.message}</p>

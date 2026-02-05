@@ -15,9 +15,11 @@ const phoneSchema = z.string().refine(
 )
 
 // PAN number validation (India only): 5 letters + 4 digits + 1 letter
-const panSchema = z.string().regex(
-  /^[A-Z]{5}[0-9]{4}[A-Z]$/,
-  'PAN must be in format: ABCDE1234F (5 letters + 4 digits + 1 letter)'
+const panSchema = z.string().transform((val) => val.trim().replace(/\s/g, '')).pipe(
+  z.string().regex(
+    /^[A-Z]{5}[0-9]{4}[A-Z]$/,
+    'PAN must be in format: ABCDE1234F (5 letters + 4 digits + 1 letter)'
+  )
 )
 
 // Donor information form schema
@@ -26,7 +28,7 @@ export const donorInfoSchema = z.object({
   donorEmail: z.string().email('Invalid email address'),
   donorPhone: phoneSchema,
   donorAddress: z.string().optional(),
-  panNumber: z.string().optional(),
+  panNumber: z.string().transform((val) => val ? val.trim().replace(/\s/g, '').toUpperCase() : val).optional(),
 })
 
 // Full donation request schema
@@ -35,7 +37,7 @@ export const donationRequestSchema = z.object({
   donorEmail: z.string().email('Invalid email address'),
   donorPhone: phoneSchema,
   donorAddress: z.string().optional(),
-  panNumber: z.string().optional(),
+  panNumber: z.string().transform((val) => val ? val.trim().replace(/\s/g, '').toUpperCase() : val).optional(),
   country: z.enum(['india', 'us']),
   donationType: z.enum(['recurring', 'onetime']),
   amount: z.number().positive('Amount must be positive'),
@@ -70,7 +72,8 @@ export const donationRequestSchema = z.object({
     // India donations require PAN number
     if (data.country === 'india') {
       if (!data.panNumber) return false
-      return panSchema.safeParse(data.panNumber).success
+      const trimmedPan = data.panNumber.trim().replace(/\s/g, '')
+      return panSchema.safeParse(trimmedPan).success
     }
     return true
   },
