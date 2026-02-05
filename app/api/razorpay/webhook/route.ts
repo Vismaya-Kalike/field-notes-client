@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const event = JSON.parse(body)
 
-    // Handle payment.captured event
+    // Handle payment.captured event (one-time payments)
     if (event.event === 'payment.captured') {
       const orderId = event.payload.payment.entity.order_id
 
@@ -32,6 +32,31 @@ export async function POST(request: NextRequest) {
           completed_at: new Date().toISOString()
         })
         .eq('payment_gateway_id', orderId)
+    }
+
+    // Handle subscription.activated event (recurring payments)
+    if (event.event === 'subscription.activated') {
+      const subscriptionId = event.payload.subscription.entity.id
+
+      await supabase
+        .from('donations')
+        .update({
+          payment_status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('payment_gateway_id', subscriptionId)
+    }
+
+    // Handle subscription.charged event (recurring payment successful)
+    if (event.event === 'subscription.charged') {
+      const subscriptionId = event.payload.subscription.entity.id
+
+      await supabase
+        .from('donations')
+        .update({
+          payment_status: 'completed'
+        })
+        .eq('payment_gateway_id', subscriptionId)
     }
 
     return NextResponse.json({ received: true })

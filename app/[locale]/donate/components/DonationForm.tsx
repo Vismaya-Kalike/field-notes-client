@@ -166,6 +166,8 @@ export function DonationForm() {
             amount={amount}
             donationId={donationId}
             donorInfo={donorInfo}
+            donationType={donationType}
+            tierId={selectedTier?.id}
             tierName={selectedTier?.name}
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
