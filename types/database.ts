@@ -67,6 +67,9 @@ export interface FieldNote {
   learning_centre_id: string;
   facilitator_id?: string | null;
   text: string;
+  sanitized_text?: string | null;
+  is_visible: boolean;
+  ai_commentary?: string | null;
   sent_at?: string;
   created_at: string;
 }

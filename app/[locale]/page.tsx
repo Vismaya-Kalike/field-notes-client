@@ -1,4 +1,5 @@
 import { PageTitle } from '@/components/PageTitle'
+import { PhotoGallery } from '@/components/PhotoGallery'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -187,6 +188,12 @@ export default async function HomePage() {
               )
             })}
           </div>
+        </section>
+
+        {/* Photos from our learning centres */}
+        <section className="space-y-6">
+          <h2 className="text-3xl">Photos from our learning centres</h2>
+          <PhotoGallery />
         </section>
       </div>
     </div>

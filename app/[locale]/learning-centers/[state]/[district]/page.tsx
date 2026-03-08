@@ -1,6 +1,8 @@
 'use client'
 
 import { use } from 'react'
+import { useRouter } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { LearningCentre } from '@/types/database'
@@ -19,6 +21,8 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
   const { state: stateParam, district: districtParam } = use(params)
   const state = decodeURIComponent(stateParam)
   const district = decodeURIComponent(districtParam)
+  const router = useRouter()
+  const locale = useLocale()
 
   const { data: learningCentres = [], isLoading, error } = useQuery({
     queryKey: ['learning-centres', state, district],
@@ -83,7 +87,11 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {learningCentres.map((centre) => (
-            <Card key={centre.id}>
+            <Card
+              key={centre.id}
+              onClick={() => router.push(`/${locale}/learning-centers/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${centre.id}`)}
+              className="cursor-pointer transition-colors hover:bg-accent"
+            >
               <CardHeader>
                 <CardTitle className="text-lg">{centre.centre_name}</CardTitle>
                 <CardDescription>
