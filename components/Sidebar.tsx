@@ -195,7 +195,15 @@ export function Sidebar({ className, navigation }: SidebarProps) {
         <div className="shrink-0 px-4 py-3 border-t border-sidebar-border space-y-3">
           <LanguageSwitcher />
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">v1.0.0</p>
+            <div className="flex gap-2 text-[10px] text-muted-foreground">
+              <Link href={`/${locale}/privacy`} className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <span>·</span>
+              <Link href={`/${locale}/terms`} className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+            </div>
             <DarkModeToggle />
           </div>
         </div>

@@ -38,6 +38,13 @@ export default defineType({
       initialValue: false,
     }),
     defineField({
+      name: 'hideFromNav',
+      title: 'Hide from Navigation',
+      type: 'boolean',
+      description: 'Check this to hide this page from the sidebar navigation (e.g., legal pages linked in the footer)',
+      initialValue: false,
+    }),
+    defineField({
       name: 'en',
       title: 'English Content',
       type: 'object',

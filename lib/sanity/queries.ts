@@ -34,7 +34,7 @@ export const pageBySlugQuery = `
 `
 
 export const allPagesQuery = `
-  *[_type == "localizedPage"] | order(order asc) {
+  *[_type == "localizedPage" && hideFromNav != true] | order(order asc) {
     _id,
     slug,
     order,
