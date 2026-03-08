@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Masonry from 'react-masonry-css'
@@ -24,7 +24,7 @@ const PAGE_SIZE = 20
 
 export function PhotoGallery() {
   const locale = useLocale()
-  const seed = useMemo(() => Math.random().toString(36).slice(2), [])
+  const [seed] = useState(() => Math.random().toString(36).slice(2))
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   const {
