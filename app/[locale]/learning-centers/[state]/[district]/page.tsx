@@ -6,9 +6,84 @@ import { useLocale } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { LearningCentre } from '@/types/database'
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageTitle } from '@/components/PageTitle'
+
+function CentreCard({
+  centre,
+  state,
+  district,
+  locale,
+  router,
+  inactive,
+}: {
+  centre: LearningCentre
+  state: string
+  district: string
+  locale: string
+  router: AppRouterInstance
+  inactive?: boolean
+}) {
+  const activeFacilitators = centre.facilitators?.filter((f) => f.active !== false) ?? []
+
+  return (
+    <Card
+      onClick={() => router.push(`/${locale}/learning-centers/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${centre.id}`)}
+      className={`cursor-pointer transition-colors hover:bg-accent ${inactive ? 'opacity-60' : ''}`}
+    >
+      <CardHeader>
+        <CardTitle className="text-lg">{centre.centre_name}</CardTitle>
+        <CardDescription>
+          {centre.area && `${centre.area}, `}{centre.city}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {inactive && centre.status_description && (
+          <p className="text-sm text-muted-foreground italic">{centre.status_description}</p>
+        )}
+
+        {activeFacilitators.length > 0 && (
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">
+              Facilitator{activeFacilitators.length > 1 ? 's' : ''}
+            </p>
+            <div className="space-y-1">
+              {activeFacilitators.map((facilitator) => (
+                <p key={facilitator.id} className="text-sm">
+                  {facilitator.name}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {centre.partner_organisations && centre.partner_organisations.length > 0 && (
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">
+              Partner Organisation{centre.partner_organisations.length > 1 ? 's' : ''}
+            </p>
+            <div className="space-y-1">
+              {centre.partner_organisations.map((org) => (
+                <p key={org.id} className="text-sm">
+                  {org.name}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="text-xs text-muted-foreground pt-2">
+          <p>Started: {new Date(centre.start_date).toLocaleDateString()}</p>
+          {centre.end_date && (
+            <p>Ended: {new Date(centre.end_date).toLocaleDateString()}</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 interface PageProps {
   params: Promise<{
@@ -29,7 +104,7 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_by_district')
-        .select('id, centre_name, area, city, district, state, start_date, end_date, facilitators, partner_organisations')
+        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations')
         .eq('state', state)
         .eq('district', district)
         .order('centre_name', { ascending: true })
@@ -85,60 +160,24 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
           No learning centres found in this district.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {learningCentres.map((centre) => (
-            <Card
-              key={centre.id}
-              onClick={() => router.push(`/${locale}/learning-centers/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${centre.id}`)}
-              className="cursor-pointer transition-colors hover:bg-accent"
-            >
-              <CardHeader>
-                <CardTitle className="text-lg">{centre.centre_name}</CardTitle>
-                <CardDescription>
-                  {centre.area && `${centre.area}, `}{centre.city}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {centre.facilitators && centre.facilitators.filter((f) => f.active !== false).length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Facilitator{centre.facilitators.filter((f) => f.active !== false).length > 1 ? 's' : ''}
-                    </p>
-                    <div className="space-y-1">
-                      {centre.facilitators.filter((f) => f.active !== false).map((facilitator) => (
-                        <p key={facilitator.id} className="text-sm">
-                          {facilitator.name}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {learningCentres.filter((c) => c.status !== 'inactive').map((centre) => (
+              <CentreCard key={centre.id} centre={centre} state={state} district={district} locale={locale} router={router} />
+            ))}
+          </div>
 
-                {centre.partner_organisations && centre.partner_organisations.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Partner Organisation{centre.partner_organisations.length > 1 ? 's' : ''}
-                    </p>
-                    <div className="space-y-1">
-                      {centre.partner_organisations.map((org) => (
-                        <p key={org.id} className="text-sm">
-                          {org.name}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="text-xs text-muted-foreground pt-2">
-                  <p>Started: {new Date(centre.start_date).toLocaleDateString()}</p>
-                  {centre.end_date && (
-                    <p>Ended: {new Date(centre.end_date).toLocaleDateString()}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+          {learningCentres.some((c) => c.status === 'inactive') && (
+            <div className="mt-12">
+              <h2 className="text-lg text-muted-foreground mb-4">Inactive Centres</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {learningCentres.filter((c) => c.status === 'inactive').map((centre) => (
+                  <CentreCard key={centre.id} centre={centre} state={state} district={district} locale={locale} router={router} inactive />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

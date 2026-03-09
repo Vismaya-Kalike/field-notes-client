@@ -33,7 +33,7 @@ export default function LearningCentrePage({ params }: PageProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_by_district')
-        .select('id, centre_name, area, city, district, state, start_date, end_date, facilitators, partner_organisations')
+        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations')
         .eq('id', centreId)
         .single()
 
@@ -118,6 +118,15 @@ export default function LearningCentrePage({ params }: PageProps) {
               {locationParts(centre)}
             </p>
           </div>
+
+          {centre.status === 'inactive' && (
+            <div className="mt-3 rounded-md border border-muted bg-muted/50 px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">This centre is no longer active</p>
+              {centre.status_description && (
+                <p className="text-sm text-muted-foreground mt-1">{centre.status_description}</p>
+              )}
+            </div>
+          )}
 
           <div className="mb-10 mt-2">
             <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">

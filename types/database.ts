@@ -92,6 +92,8 @@ export interface LearningCentre {
   country: string;
   start_date: string;
   end_date: string;
+  status: 'active' | 'inactive';
+  status_description?: string;
   created_at: string;
   volunteers?: Volunteer[];
   facilitators: Facilitator[];
