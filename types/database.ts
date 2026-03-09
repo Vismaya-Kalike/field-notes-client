@@ -27,6 +27,7 @@ export interface Facilitator {
   start_date?: string;
   end_date?: string;
   alias?: string[];
+  active?: boolean;
 }
 
 export interface PartnerOrganisation {

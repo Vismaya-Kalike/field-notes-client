@@ -121,12 +121,12 @@ export default function LearningCentrePage({ params }: PageProps) {
 
           <div className="mb-10 mt-2">
             <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-              {centre.facilitators && centre.facilitators.length > 0 && (
+              {centre.facilitators && centre.facilitators.filter((f) => f.active !== false).length > 0 && (
                 <div>
                   <span className="text-muted-foreground">
-                    Facilitator{centre.facilitators.length > 1 ? 's' : ''}:
+                    Facilitator{centre.facilitators.filter((f) => f.active !== false).length > 1 ? 's' : ''}:
                   </span>{' '}
-                  {centre.facilitators.map((f) => f.name).join(', ')}
+                  {centre.facilitators.filter((f) => f.active !== false).map((f) => f.name).join(', ')}
                 </div>
               )}
 

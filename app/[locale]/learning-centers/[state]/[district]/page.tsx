@@ -99,13 +99,13 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {centre.facilitators && centre.facilitators.length > 0 && (
+                {centre.facilitators && centre.facilitators.filter((f) => f.active !== false).length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">
-                      Facilitator{centre.facilitators.length > 1 ? 's' : ''}
+                      Facilitator{centre.facilitators.filter((f) => f.active !== false).length > 1 ? 's' : ''}
                     </p>
                     <div className="space-y-1">
-                      {centre.facilitators.map((facilitator) => (
+                      {centre.facilitators.filter((f) => f.active !== false).map((facilitator) => (
                         <p key={facilitator.id} className="text-sm">
                           {facilitator.name}
                         </p>
