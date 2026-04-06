@@ -120,6 +120,40 @@ export interface Activity {
   updated_at: string;
 }
 
+export interface Song {
+  id: string
+  song_number: number
+  title: string
+  title_en: string
+  lyrics: string
+  author?: string
+  pedagogical_purpose?: string
+  notes?: string
+  created_at: string
+}
+
+export interface ScienceExperiment {
+  id: string
+  experiment_number: number
+  title: string
+  materials: string
+  steps: string
+  result: string
+  learning_outcome: string
+  category?: string
+  created_at: string
+}
+
+export interface ReadingListItem {
+  id: string
+  title: string
+  author: string
+  type: 'book' | 'article' | 'paper'
+  description: string
+  apa_citation?: string
+  created_at: string
+}
+
 export interface Blog {
   id: string;
   title: string;

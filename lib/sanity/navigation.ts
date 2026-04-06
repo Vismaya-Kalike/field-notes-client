@@ -98,12 +98,32 @@ export async function getNavigation(locale: Locale): Promise<NavItem[]> {
           href: '/resources/activities',
           order: 0,
         },
+        {
+          title: 'Songs',
+          href: '/resources/songs',
+          order: 1,
+        },
+        {
+          title: 'Science Experiments',
+          href: '/resources/experiments',
+          order: 2,
+        },
+        {
+          title: 'Reading List',
+          href: '/resources/reading-list',
+          order: 3,
+        },
       ],
     },
     {
       title: 'Donate',
       href: '/donate',
       order: 1002,
+    },
+    {
+      title: 'Contact Us',
+      href: '/contact',
+      order: 1003,
     },
   ]
 
