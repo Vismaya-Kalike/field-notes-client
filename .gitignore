@@ -39,3 +39,10 @@ supabase/seeds/
 .sanity
 tsconfig.tsbuildinfo
 .vercel
+
+# Supabase CLI local cache
+supabase/.temp/
+
+# Loose source docs at repo root (e.g. Google Docs exports). Anchored with
+# leading slash so tracked files like public/pitch_deck.pdf are unaffected.
+/*.pdf
