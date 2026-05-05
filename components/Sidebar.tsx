@@ -18,7 +18,7 @@ export interface NavItem {
   _pageId?: string
 }
 
-function NavGroup({ item, depth = 0 }: { item: NavItem; depth?: number }) {
+function NavGroup({ item, depth = 0, onNavigate }: { item: NavItem; depth?: number; onNavigate?: () => void }) {
   const pathname = usePathname()
   const locale = useLocale()
   const [isOpen, setIsOpen] = useState(() => {
@@ -42,6 +42,7 @@ function NavGroup({ item, depth = 0 }: { item: NavItem; depth?: number }) {
     return (
       <Link
         href={fullHref}
+        onClick={onNavigate}
         className={cn(
           "block px-3 py-1.5 text-sm rounded-md transition-colors",
           isActive
@@ -76,7 +77,7 @@ function NavGroup({ item, depth = 0 }: { item: NavItem; depth?: number }) {
       {isOpen && (
         <div className="ml-3 pl-3 border-l border-border space-y-1">
           {item.children?.map((child, idx) => (
-            <NavGroup key={idx} item={child} depth={depth + 1} />
+            <NavGroup key={idx} item={child} depth={depth + 1} onNavigate={onNavigate} />
           ))}
         </div>
       )}
@@ -84,7 +85,7 @@ function NavGroup({ item, depth = 0 }: { item: NavItem; depth?: number }) {
   )
 }
 
-function LanguageSwitcher() {
+function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   const locale = useLocale()
 
@@ -94,6 +95,7 @@ function LanguageSwitcher() {
     <div className="flex gap-2">
       <Link
         href={`/en${pathWithoutLocale}`}
+        onClick={onNavigate}
         className={cn(
           "px-2 py-1 text-xs rounded transition-colors",
           locale === 'en'
@@ -128,6 +130,7 @@ interface SidebarProps {
 export function Sidebar({ className, navigation }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const locale = useLocale()
+  const closeMobile = () => setMobileOpen(false)
 
   return (
     <>
@@ -163,7 +166,7 @@ export function Sidebar({ className, navigation }: SidebarProps) {
         {/* Header */}
         <div className="shrink-0 px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
-            <Link href={`/${locale}/`} className="block">
+            <Link href={`/${locale}/`} onClick={closeMobile} className="block">
               <Image
                 height={400}
                 width={200}
@@ -187,20 +190,20 @@ export function Sidebar({ className, navigation }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
           {navigation.map((item, idx) => (
-            <NavGroup key={idx} item={item} />
+            <NavGroup key={idx} item={item} onNavigate={closeMobile} />
           ))}
         </nav>
 
         {/* Footer */}
         <div className="shrink-0 px-4 py-3 border-t border-sidebar-border space-y-3">
-          <LanguageSwitcher />
+          <LanguageSwitcher onNavigate={closeMobile} />
           <div className="flex items-center justify-between">
             <div className="flex gap-2 text-[10px] text-muted-foreground">
-              <Link href={`/${locale}/privacy`} className="hover:text-foreground transition-colors">
+              <Link href={`/${locale}/privacy`} onClick={closeMobile} className="hover:text-foreground transition-colors">
                 Privacy
               </Link>
               <span>·</span>
-              <Link href={`/${locale}/terms`} className="hover:text-foreground transition-colors">
+              <Link href={`/${locale}/terms`} onClick={closeMobile} className="hover:text-foreground transition-colors">
                 Terms
               </Link>
             </div>

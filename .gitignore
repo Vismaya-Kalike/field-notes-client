@@ -38,3 +38,4 @@ supabase/seeds/
 .next
 .sanity
 tsconfig.tsbuildinfo
+.vercel
