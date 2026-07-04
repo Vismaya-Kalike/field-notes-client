@@ -74,6 +74,17 @@ function CentreCard({
           </div>
         )}
 
+        {centre.donors && centre.donors.length > 0 && (
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">
+              Supported by
+            </p>
+            <p className="text-sm">
+              {centre.donors.map((d) => d.name).join(', ')}
+            </p>
+          </div>
+        )}
+
         <div className="text-xs text-muted-foreground pt-2">
           <p>Started: {new Date(centre.start_date).toLocaleDateString()}</p>
           {centre.end_date && (
@@ -104,7 +115,7 @@ export default function DistrictLearningCentresPage({ params }: PageProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_by_district')
-        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations')
+        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations, donors')
         .eq('state', state)
         .eq('district', district)
         .order('centre_name', { ascending: true })
