@@ -33,7 +33,7 @@ export default function LearningCentrePage({ params }: PageProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('learning_centres_by_district')
-        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations')
+        .select('id, centre_name, area, city, district, state, start_date, end_date, status, status_description, facilitators, partner_organisations, donors')
         .eq('id', centreId)
         .single()
 
@@ -145,6 +145,13 @@ export default function LearningCentrePage({ params }: PageProps) {
                     Partner{centre.partner_organisations.length > 1 ? 's' : ''}:
                   </span>{' '}
                   {centre.partner_organisations.map((o) => o.name).join(', ')}
+                </div>
+              )}
+
+              {centre.donors && centre.donors.length > 0 && (
+                <div>
+                  <span className="text-muted-foreground">Supported by:</span>{' '}
+                  {centre.donors.map((d) => d.name).join(', ')}
                 </div>
               )}
 
