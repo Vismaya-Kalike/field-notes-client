@@ -38,6 +38,13 @@ export interface PartnerOrganisation {
   logo_url?: string;
 }
 
+export interface Donor {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+}
+
 export interface Volunteer {
   id: string;
   name: string;
@@ -98,6 +105,7 @@ export interface LearningCentre {
   volunteers?: Volunteer[];
   facilitators: Facilitator[];
   partner_organisations: PartnerOrganisation[];
+  donors?: Donor[];
 }
 
 export interface Activity {
