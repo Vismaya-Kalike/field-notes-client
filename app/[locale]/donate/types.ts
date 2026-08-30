@@ -12,6 +12,12 @@ export interface RecurringTier {
   name: string
   amount: number
   description?: string
+  centerCount?: number
+}
+
+export interface GroupMember {
+  name: string
+  email: string
 }
 
 export interface DonationFormData {
@@ -33,6 +39,7 @@ export interface DonationRequest {
   amount: number
   paymentMethod: PaymentMethod
   recurringTier?: string
+  friends?: GroupMember[]
 }
 
 export interface DonationResponse {
@@ -73,6 +80,8 @@ export interface Donation {
   organization: string
   donation_type: DonationType
   recurring_tier: string | null
+  center_count: number | null
+  group_members: GroupMember[] | null
   amount: number
   currency: Currency
   payment_method: PaymentMethod

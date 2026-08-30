@@ -1,7 +1,13 @@
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import type { Country, RecurringTier } from '../types'
+import {
+  CUSTOM_TIER_ID,
+  GROUP_TIER_ID,
+  US_CENTER_MONTHLY_USD,
+  getTiers,
+  type TierDefinition
+} from '@/lib/donations/tiers'
 import { cn } from '@/lib/utils'
 
 interface RecurringTierCardsProps {
@@ -12,43 +18,8 @@ interface RecurringTierCardsProps {
   onCustomAmountChange: (amount: number | null) => void
 }
 
-const TIERS = [
-  {
-    id: 'adopt-center',
-    name: 'Adopt a Learning Center',
-    amountINR: 25000,
-    amountUSD: 249,
-    description: 'Support all costs for a complete learning center'
-  },
-  {
-    id: 'third-center',
-    name: 'Support 1/3rd of a Center',
-    amountINR: 8333,
-    amountUSD: 83,
-    description: 'Cover one-third of monthly center operations'
-  },
-  {
-    id: 'facilitator',
-    name: 'Support Facilitator Cost',
-    amountINR: 5000,
-    amountUSD: 60,
-    description: 'Fund a facilitator\'s monthly stipend'
-  },
-  {
-    id: 'fixed-monthly',
-    name: 'Contribute Fixed Sum Monthly',
-    amountINR: 2500,
-    amountUSD: 30,
-    description: 'Regular monthly contribution'
-  },
-  {
-    id: 'stationery',
-    name: 'Stationery for a Center',
-    amountINR: 1000,
-    amountUSD: 12,
-    description: 'Provide books, materials, and supplies'
-  }
-]
+const selectedCardStyles =
+  'border-2 border-coral bg-coral/15 shadow-lg ring-2 ring-coral/30 dark:border-turquoise dark:bg-turquoise/10 dark:ring-turquoise/30'
 
 export function RecurringTierCards({
   country,
@@ -57,64 +28,52 @@ export function RecurringTierCards({
   customAmount,
   onCustomAmountChange
 }: RecurringTierCardsProps) {
-  const [isCustomSelected, setIsCustomSelected] = useState(false)
-  const currencySymbol = country === 'india' ? '₹' : '$'
+  const tiers = getTiers(country)
+  const isUS = country === 'us'
+  const currencySymbol = isUS ? '$' : '₹'
+  const locale = isUS ? 'en-US' : 'en-IN'
 
-  const formatAmount = (tier: typeof TIERS[0]): string => {
-    if (country === 'india') {
-      return `₹${tier.amountINR.toLocaleString('en-IN')}`
-    }
-    return `$${tier.amountUSD.toLocaleString('en-US')}`
+  const customTierId = isUS ? GROUP_TIER_ID : CUSTOM_TIER_ID
+  const isCustomSelected = selectedTier?.id === customTierId
+
+  const selectCustomTier = (amount: number | null) => {
+    onSelectTier({
+      id: customTierId,
+      name: isUS ? 'Adopt a Center with Your Friends' : 'Custom Amount',
+      amount: amount ?? 0
+    })
   }
 
-  const handleTierClick = (tier: typeof TIERS[0]) => {
-    setIsCustomSelected(false)
+  const handleTierClick = (tier: TierDefinition) => {
     onCustomAmountChange(null)
-    // Pass the tier with the correct amount for the country
-    onSelectTier({
-      id: tier.id,
-      name: tier.name,
-      amount: country === 'india' ? tier.amountINR : tier.amountUSD,
-      description: tier.description
-    })
-  }
-
-  const handleCustomClick = () => {
-    setIsCustomSelected(true)
-    onSelectTier({
-      id: 'custom',
-      name: 'Custom Amount',
-      amount: customAmount || 0
-    })
+    onSelectTier(tier)
   }
 
   const handleCustomAmountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (value === '') {
       onCustomAmountChange(null)
+      selectCustomTier(null)
       return
     }
+
     const numValue = parseFloat(value)
     if (!isNaN(numValue) && numValue > 0) {
       onCustomAmountChange(numValue)
-      onSelectTier({
-        id: 'custom',
-        name: 'Custom Amount',
-        amount: numValue
-      })
+      selectCustomTier(numValue)
     }
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {TIERS.map((tier) => {
-        const isSelected = selectedTier?.id === tier.id && !isCustomSelected
+      {tiers.map((tier) => {
+        const isSelected = selectedTier?.id === tier.id
         return (
           <Card
             key={tier.id}
             className={cn(
               'py-3 gap-2 cursor-pointer transition-all hover:shadow-md',
-              isSelected && 'border-2 border-coral bg-coral/15 shadow-lg ring-2 ring-coral/30 dark:border-turquoise dark:bg-turquoise/10 dark:ring-turquoise/30'
+              isSelected && selectedCardStyles
             )}
             onClick={() => handleTierClick(tier)}
           >
@@ -125,7 +84,7 @@ export function RecurringTierCards({
             </CardHeader>
             <CardContent className="px-4 space-y-1">
               <p className={cn('text-sm font-medium', isSelected && 'text-coral dark:text-turquoise')}>
-                {formatAmount(tier)} / month
+                {currencySymbol}{tier.amount.toLocaleString(locale)} / month
               </p>
               {tier.description && (
                 <p className={cn('text-xs', isSelected ? 'text-foreground/70' : 'text-muted-foreground')}>
@@ -137,17 +96,16 @@ export function RecurringTierCards({
         )
       })}
 
-      {/* Custom Amount Card */}
       <Card
         className={cn(
           'py-3 gap-2 cursor-pointer transition-all hover:shadow-md',
-          isCustomSelected && 'border-2 border-coral bg-coral/15 shadow-lg ring-2 ring-coral/30 dark:border-turquoise dark:bg-turquoise/10 dark:ring-turquoise/30'
+          isCustomSelected && selectedCardStyles
         )}
-        onClick={handleCustomClick}
+        onClick={() => selectCustomTier(customAmount)}
       >
         <CardHeader className="px-4 gap-1">
           <CardTitle className={cn('text-base', isCustomSelected && 'text-coral dark:text-turquoise')}>
-            Custom Amount
+            {isUS ? 'Adopt a Center with Your Friends' : 'Custom Amount'}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 space-y-2">
@@ -162,18 +120,20 @@ export function RecurringTierCards({
               type="number"
               min="1"
               step="1"
-              placeholder={country === 'india' ? '2500' : '75'}
+              placeholder={isUS ? String(US_CENTER_MONTHLY_USD) : '2500'}
               value={customAmount ?? ''}
               onChange={handleCustomAmountInput}
               onClick={(e) => {
                 e.stopPropagation()
-                handleCustomClick()
+                selectCustomTier(customAmount)
               }}
               className={cn('pl-8', isCustomSelected && 'border-coral dark:border-turquoise focus-visible:ring-coral dark:focus-visible:ring-turquoise')}
             />
           </div>
           <p className={cn('text-xs', isCustomSelected ? 'text-foreground/70' : 'text-muted-foreground')}>
-            Enter your preferred monthly amount
+            {isUS
+              ? 'Split the cost of a center with friends. Add their details at the next step — or leave it to us and we\'ll match you with other donors.'
+              : 'Enter your preferred monthly amount'}
           </p>
         </CardContent>
       </Card>
