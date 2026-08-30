@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Razorpay } from '@/lib/razorpay'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +55,31 @@ export async function POST(request: NextRequest) {
         .from('donations')
         .update({
           payment_status: 'completed'
+        })
+        .eq('payment_gateway_id', subscriptionId)
+    }
+
+    // Handle subscription.cancelled event (donor stopped giving)
+    if (event.event === 'subscription.cancelled') {
+      const subscriptionId = event.payload.subscription.entity.id
+
+      await supabase
+        .from('donations')
+        .update({
+          payment_status: 'cancelled',
+          cancelled_at: new Date().toISOString()
+        })
+        .eq('payment_gateway_id', subscriptionId)
+    }
+
+    // Handle subscription.halted event (Razorpay stopped retrying failed charges)
+    if (event.event === 'subscription.halted') {
+      const subscriptionId = event.payload.subscription.entity.id
+
+      await supabase
+        .from('donations')
+        .update({
+          payment_status: 'failed'
         })
         .eq('payment_gateway_id', subscriptionId)
     }

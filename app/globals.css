@@ -12,6 +12,7 @@
 
   /* Fonts */
   --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-baloo), ui-rounded, ui-sans-serif, system-ui, sans-serif;
 
   /* ViKa Brand Colors */
   --color-vika-turquoise: #1eddd2;
@@ -164,4 +165,23 @@
   .dark a {
     color: var(--color-vika-coral);
   }
+}
+
+/*
+ * Marketing shell scope. Unlayered rules beat any @layer base rule regardless
+ * of specificity, so marketing pages escape the handbook's coral / Work-Sans-300
+ * heading treatment without !important. The handbook never opts into .marketing.
+ * Accent-colored heading words go in a nested <span> with a text-vika-* utility
+ * (spans aren't targeted here, so the utility wins).
+ */
+.marketing :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+.marketing :is(p, li) {
+  font-weight: 400;
 }
