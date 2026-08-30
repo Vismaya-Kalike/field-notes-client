@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
-import { sendConfirmationEmail } from '@/lib/donations/confirmation-email'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,44 +65,27 @@ export async function POST(request: NextRequest) {
       if (subscriptionId) {
         // Mark donation as completed on first successful subscription payment
         if (invoice.billing_reason === 'subscription_create') {
-          const { data: donation } = await supabase
+          await supabase
             .from('donations')
             .update({
               payment_status: 'completed',
               completed_at: new Date().toISOString()
             })
             .eq('payment_gateway_id', subscriptionId)
-            .select('donor_name, donor_email, amount, center_count, recurring_tier')
-            .maybeSingle()
-
-          // Sent here rather than at checkout so the donor is only thanked once money
-          // has actually moved. Failures are logged, never thrown: this webhook is
-          // already idempotent, and a rejected delivery would have Stripe retry it.
-          if (donation) {
-            await sendConfirmationEmail({
-              donorName: donation.donor_name,
-              donorEmail: donation.donor_email,
-              amount: Number(donation.amount),
-              centerCount: donation.center_count,
-              tierName: donation.recurring_tier
-            })
-          }
         }
         // Note: Subsequent recurring payments (billing_reason: 'subscription_cycle')
         // are tracked automatically by Stripe but don't need to update the original donation record
       }
     }
 
-    // Handle subscription cancellation. This is a donor choosing to stop, not a
-    // payment failure, and must stay distinguishable from one in reporting.
+    // Handle subscription cancellation
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object
 
       await supabase
         .from('donations')
         .update({
-          payment_status: 'cancelled',
-          cancelled_at: new Date().toISOString()
+          payment_status: 'failed'
         })
         .eq('payment_gateway_id', subscription.id)
     }

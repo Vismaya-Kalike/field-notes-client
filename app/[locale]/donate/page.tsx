@@ -1,5 +1,4 @@
 import { DonationForm } from './components/DonationForm'
-import { STRIPE_PORTAL_URL } from '@/lib/donations/portal'
 
 export default function DonatePage() {
   return (
@@ -31,22 +30,6 @@ export default function DonatePage() {
               Donations are made to Spring Foundation in USD. Spring Foundation is a
               registered 501(c)(3) nonprofit organization (EIN: 32-0826727).
               Your donation is tax-deductible to the extent allowed by law.
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="font-medium text-foreground">Already donating monthly?</p>
-            <p>
-              You can update your card or cancel your monthly donation at any time from
-              the{' '}
-              <a
-                href={STRIPE_PORTAL_URL}
-                className="underline underline-offset-2"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                donor billing portal
-              </a>
-              . Enter the email you donated with and Stripe will send you a secure link.
             </p>
           </div>
           <div className="pt-2">

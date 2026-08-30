@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
+import { supabase } from '@/lib/supabase'
 import { z } from 'zod'
 import type Stripe from 'stripe'
-import { buildSubscriptionItem } from '@/lib/donations/stripe-items'
-import { getTierById } from '@/lib/donations/tiers'
 
 const subscriptionSchema = z.object({
+  amount: z.number().positive(),
   donationId: z.string().uuid(),
   donorEmail: z.string().email(),
   donorName: z.string(),
@@ -25,29 +24,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { donationId, donorEmail, donorName, tierName } = validation.data
+    const { amount, donationId, donorEmail, donorName, tierName } = validation.data
 
-    // The tier and amount come from the donation record written by /api/donations,
-    // never from this request body, so the browser cannot name its own price.
+    // Check if subscription already exists for this donation
     const existingDonation = await supabase
       .from('donations')
-      .select('payment_gateway_id, payment_status, recurring_tier, amount')
+      .select('payment_gateway_id, payment_status')
       .eq('id', donationId)
       .single()
-
-    if (!existingDonation.data) {
-      return NextResponse.json({ error: 'Donation not found' }, { status: 404 })
-    }
-
-    const { recurring_tier: tierId, amount: storedAmount } = existingDonation.data
-    const amount = Number(storedAmount)
-
-    if (!tierId) {
-      return NextResponse.json(
-        { error: 'Donation has no recurring tier' },
-        { status: 400 }
-      )
-    }
 
     if (existingDonation.data?.payment_gateway_id &&
         existingDonation.data.payment_status !== 'failed') {
@@ -76,6 +60,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const amountInCents = Math.round(amount * 100)
+
     // Find or create customer (simple approach)
     let customer
     try {
@@ -96,33 +82,18 @@ export async function POST(request: NextRequest) {
     // Use single product for all donations with dynamic pricing
     // Create this product once in Stripe Dashboard or set STRIPE_DONATION_PRODUCT_ID env var
     const DONATION_PRODUCT_ID = process.env.STRIPE_DONATION_PRODUCT_ID || 'prod_donation_default'
-    const centerPriceId = process.env.STRIPE_CENTER_PRICE_ID
 
-    if (!centerPriceId) {
-      console.warn(
-        'STRIPE_CENTER_PRICE_ID is not set. Centre subscriptions will bill the correct ' +
-        'total via an inline price, but Stripe cannot aggregate centres sponsored.'
-      )
-    }
-
-    let subscriptionItem: Stripe.SubscriptionCreateParams.Item
-    try {
-      subscriptionItem = buildSubscriptionItem({
-        tierId,
-        amount,
-        donationProductId: DONATION_PRODUCT_ID,
-        centerPriceId
-      })
-    } catch (err) {
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : 'Invalid donation tier' },
-        { status: 400 }
-      )
-    }
-
+    // Create subscription with dynamic price_data
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
-      items: [subscriptionItem],
+      items: [{
+        price_data: {
+          currency: 'usd',
+          product: DONATION_PRODUCT_ID,
+          recurring: { interval: 'month' },
+          unit_amount: amountInCents
+        }
+      }],
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
@@ -136,26 +107,19 @@ export async function POST(request: NextRequest) {
       expand: ['latest_invoice.confirmation_secret'],
       metadata: {
         donationId,
-        tierId,
         tierName: tierName || 'Custom',
-        centerCount: getTierById('us', tierId)?.centerCount?.toString() ?? '',
         amount: amount.toString()
       }
     })
 
-    const { error: linkError } = await supabase
+    // Update donation with subscription ID
+    await supabase
       .from('donations')
       .update({
         payment_gateway: 'stripe',
         payment_gateway_id: subscription.id
       })
       .eq('id', donationId)
-
-    // Without this link the webhook cannot match Stripe events back to the donation,
-    // so a silent failure here would leave the record permanently stuck at pending.
-    if (linkError) {
-      console.error('Failed to link donation to Stripe subscription:', linkError)
-    }
 
     // Extract client_secret - Stripe returns it in confirmation_secret
     const invoice = subscription.latest_invoice as Stripe.Invoice

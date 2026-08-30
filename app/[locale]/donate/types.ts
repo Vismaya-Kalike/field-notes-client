@@ -3,7 +3,7 @@
 export type Country = 'india' | 'us'
 export type DonationType = 'recurring' | 'onetime'
 export type PaymentMethod = 'card' | 'upi' | 'bank_transfer' | 'cheque' | 'employee_matching'
-export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Currency = 'INR' | 'USD'
 export type FlowStep = 'amount' | 'payment' | 'donor_info' | 'checkout'
 
@@ -12,12 +12,6 @@ export interface RecurringTier {
   name: string
   amount: number
   description?: string
-  centerCount?: number
-}
-
-export interface GroupMember {
-  name: string
-  email: string
 }
 
 export interface DonationFormData {
@@ -39,7 +33,6 @@ export interface DonationRequest {
   amount: number
   paymentMethod: PaymentMethod
   recurringTier?: string
-  friends?: GroupMember[]
 }
 
 export interface DonationResponse {
@@ -80,8 +73,6 @@ export interface Donation {
   organization: string
   donation_type: DonationType
   recurring_tier: string | null
-  center_count: number | null
-  group_members: GroupMember[] | null
   amount: number
   currency: Currency
   payment_method: PaymentMethod
@@ -90,5 +81,4 @@ export interface Donation {
   payment_status: PaymentStatus
   created_at: string
   completed_at: string | null
-  cancelled_at: string | null
 }
