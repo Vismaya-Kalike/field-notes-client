@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { razorpay } from '@/lib/razorpay'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 import { razorpayOrderSchema } from '@/lib/validations/donation'
 
 export async function POST(request: NextRequest) {

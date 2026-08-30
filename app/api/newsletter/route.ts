@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 import { newsletterSubscriptionSchema } from '@/lib/validations/newsletter'
 
 export async function POST(request: NextRequest): Promise<NextResponse<{ message: string } | { error: string }>> {
