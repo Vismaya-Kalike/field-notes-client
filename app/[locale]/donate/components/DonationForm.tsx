@@ -21,7 +21,7 @@ import { ChequeInfo } from './ChequeInfo'
 import { EmployeeMatchingInfo } from './EmployeeMatchingInfo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { stripEmptyFriends, type DonorInfoFormData } from '@/lib/validations/donation'
+import type { DonorInfoFormData } from '@/lib/validations/donation'
 
 export function DonationForm() {
   const [country, setCountry] = useState<Country>('india')
@@ -109,8 +109,7 @@ export function DonationForm() {
           donationType,
           amount,
           paymentMethod,
-          recurringTier: selectedTier?.id,
-          friends: stripEmptyFriends(data.friends)
+          recurringTier: selectedTier?.id
         })
       })
 
@@ -328,7 +327,6 @@ export function DonationForm() {
           <h3 className="text-sm font-medium mb-4">Donor Information</h3>
           <DonorInfoForm
             country={country}
-            tierId={selectedTier?.id}
             onSubmit={handleDonorInfoSubmit}
             onBack={() => setStep('payment')}
           />

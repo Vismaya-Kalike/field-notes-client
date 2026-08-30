@@ -88,11 +88,8 @@ export function StripeCheckout({
 
     const initStripe = async () => {
       try {
-        // Use subscription endpoint for recurring, payment intent for one-time.
-        // The subscription endpoint prices from the stored donation record, so it is
-        // deliberately not told an amount.
-        const isRecurring = donationType === 'recurring'
-        const endpoint = isRecurring
+        // Use subscription endpoint for recurring, payment intent for one-time
+        const endpoint = donationType === 'recurring'
           ? '/api/stripe/create-subscription'
           : '/api/stripe/create-intent'
 
@@ -100,7 +97,7 @@ export function StripeCheckout({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...(isRecurring ? {} : { amount }),
+            amount,
             donationId,
             donorEmail: donorInfo.donorEmail,
             donorName: donorInfo.donorName,
